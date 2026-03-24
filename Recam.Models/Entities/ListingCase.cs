@@ -26,7 +26,7 @@ public class ListingCase
     public ListcaseStatus ListingStatus { get; set; }
     public string UserId { get; set; } //FIXME: 怎么和agent对应上
 
-    public ApplicationUser User { get; set; }
+    public User User { get; set; }
     public List<Agent> Agents { get; set; }
     public List<CaseContact> CaseContacts { get; set; }
     public List<MediaAsset> MediaAssets { get; set; } 

@@ -8,6 +8,6 @@ public class PhotograpyCompany
     public string PhotographyCompanyName { get; set; }
 
     // FIXME: is是什么意思
-    // public ApplicationUser User { get; set; }
+    // public User User { get; set; }
     public List<Agent> Agents { get; set; }
 }

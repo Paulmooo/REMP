@@ -16,5 +16,5 @@ public class MediaAsset
     public string UserId { get; set; }
 
     public ListingCase ListingCase { get; set; }
-    public ApplicationUser User { get; set; }
+    public User User { get; set; }
 }
