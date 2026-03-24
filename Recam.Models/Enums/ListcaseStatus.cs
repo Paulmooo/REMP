@@ -1,6 +1,6 @@
 namespace Recam.Models.Enums;
 
-public enum ListingCaseStatus
+public enum ListcaseStatus
 {
     Draft = 1,
     Active = 2,
