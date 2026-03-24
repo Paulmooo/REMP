@@ -1,0 +1,14 @@
+using System;
+
+namespace Recam.Models.Entities;
+
+public class Agent
+{
+    public string Id { get; set; }
+    public string AgentFirstName { get; set; }
+    public string AgentLastName { get; set; }
+    public string AvatarUrl { get; set; }
+    public string CompanyName { get; set; }
+    public List<ListingCase> ListingCases { get; set; }
+    public List<PhotograpyCompany> PhotographyCompanies { get; set; }
+}
