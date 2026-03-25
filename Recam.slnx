@@ -1,9 +1,6 @@
 <Solution>
   <Project Path="Recam.API/Recam.API.csproj" />
-<<<<<<< Updated upstream
-=======
   <Project Path="Recam.Common/Recam.Common.csproj" />
   <Project Path="Recam.DataAccess/Recam.DataAccess.csproj" />
->>>>>>> Stashed changes
   <Project Path="Recam.Models/Recam.Models.csproj" />
 </Solution>
