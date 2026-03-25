@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Recam.Models;
 using Recam.Models.Entities;
 
-namespace Recam.API.DataAccess;
+namespace Recam.DataAccess;
 
 public class RecamDbContext : DbContext
 {
