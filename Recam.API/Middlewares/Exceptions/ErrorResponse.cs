@@ -1,6 +1,6 @@
 using System;
 
-namespace Recam.Common.Exceptions;
+namespace Recam.API.Middlewares.Exceptions;
 
 public class ErrorResponse
 {

@@ -1,9 +1,8 @@
 using System;
 using System.Text.Json;
 using Microsoft.AspNetCore.Diagnostics;
-using Microsoft.AspNetCore.Http;
 
-namespace Recam.Common.Exceptions;
+namespace Recam.API.Middlewares.Exceptions;
 
 public class ExceptionHandlingService
 {
