@@ -1,4 +1,5 @@
 <Solution>
   <Project Path="Recam.API/Recam.API.csproj" />
+  <Project Path="Recam.Common/Recam.Common.csproj" />
   <Project Path="Recam.Models/Recam.Models.csproj" />
 </Solution>
