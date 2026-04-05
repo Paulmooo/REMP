@@ -11,6 +11,5 @@ public class MappingProfile : Profile
     public MappingProfile()
     {
         CreateMap<RegisterRequestDto, User>();
-        CreateMap<User, RegisterResponseDto>();
     }
 }

@@ -29,7 +29,7 @@ public class AuthService : IAuthService
         var existing = await _authRepository.FindByUsernameAsync(dto.Username);
         if (existing != null)
         {
-            return new RegisterResponseDto { Success = false, Message = "Username already exists" };
+            throw new ArgumentException("Username already exists");
         }
 
         var newUser = new User
@@ -37,29 +37,26 @@ public class AuthService : IAuthService
             UserName = dto.Username,
             Email = dto.Email
         };
-
+        
         var result = await _authRepository.RegisterWithRoleAsync(newUser, dto.Password, DefaultUserRole);
         if (!result.Succeeded)
         {
-            return new RegisterResponseDto
-            {
-                Success = false,
-                Errors = result.Errors.Select(e => e.Description).ToList()
-            };
+            throw new ArgumentException("Failed to register user");
         }
 
-        var token = await GenerateJwtToken(newUser);
+        var roles = await _authRepository.GetRolesAsync(newUser);
+        var token = GenerateJwtToken(newUser, roles.ToList());
 
         return new RegisterResponseDto
         {
-            Success = true,
             Token = token,
             Username = newUser.UserName,
-            Email = newUser.Email
+            Email = newUser.Email,
+            Roles = roles.ToList()
         };
     }
 
-    private async Task<string> GenerateJwtToken(User user)
+    private string GenerateJwtToken(User user, List<string> roles)
     {
         // 创建JWT声明，包含用户信息和角色
         var claims = new List<Claim>
@@ -68,9 +65,6 @@ public class AuthService : IAuthService
             new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
             new Claim(ClaimTypes.NameIdentifier, user.Id)
         };
-
-        // 获取用户的角色并添加到声明中
-        var roles = await _authRepository.GetRolesAsync(user);
 
         // 把角色添加到JWT声明中
         foreach (var role in roles)
