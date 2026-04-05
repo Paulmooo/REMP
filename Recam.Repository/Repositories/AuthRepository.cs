@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using Microsoft.AspNetCore.Identity;
 using Recam.DataAccess.Data;
 using Recam.Models.Entities;
@@ -52,8 +53,8 @@ public class AuthRepository : IAuthRepository
         }
     }
 
-    public async Task<IList<string>> GetRolesAsync(User user)
+    public async Task<List<string>> GetRolesAsync(User user)
     {
-        return await _userManager.GetRolesAsync(user);
+        return (await _userManager.GetRolesAsync(user)).ToList();
     }
 }
