@@ -10,9 +10,9 @@ public class ErrorResponse
 
     public string ErrorType { get; set; }
 
-    public string? Detail { get; set; }
+    public string Detail { get; set; }
 
-    public ErrorResponse(int statusCode, string message, string errorType, string? detail = null)
+    public ErrorResponse(int statusCode, string message, string errorType, string detail = null)
     {
         StatusCode = statusCode;
         Message = message;
