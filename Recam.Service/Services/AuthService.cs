@@ -2,6 +2,7 @@ using System;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using AutoMapper;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using Recam.Models.Entities;
@@ -13,15 +14,16 @@ namespace Recam.Service.Services;
 
 public class AuthService : IAuthService
 {
-    private const string DefaultUserRole = "User";
+    private const string DefaultUserRole = "user";
     private readonly IConfiguration _configuration;
     private readonly IAuthRepository _authRepository;
-    
+    private readonly IMapper _mapper;
 
-    public AuthService(IConfiguration configuration, IAuthRepository authRepository)
+    public AuthService(IConfiguration configuration, IAuthRepository authRepository, IMapper mapper)
     {
         _configuration = configuration;
         _authRepository = authRepository;
+        _mapper = mapper;
     }
 
     public async Task<RegisterResponseDto> RegisterAsync(RegisterRequestDto dto)
@@ -32,11 +34,7 @@ public class AuthService : IAuthService
             throw new ArgumentException("Username already exists");
         }
 
-        var newUser = new User
-        {
-            UserName = dto.Username,
-            Email = dto.Email
-        };
+        var newUser = _mapper.Map<User>(dto);
         
         var result = await _authRepository.RegisterWithRoleAsync(newUser, dto.Password, DefaultUserRole);
         if (!result.Succeeded)
