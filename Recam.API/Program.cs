@@ -6,8 +6,20 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Recam.DataAccess.Data;
 using Recam.Models.Entities;
+using Recam.Repository.Interfaces;
+using Recam.Repository.Repositories;
+using Recam.Service.Interfaces;
+using Recam.Service.Mapper;
+using Recam.Service.Services;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddControllers();
+
+builder.Services.AddScoped<IAuthRepository, AuthRepository>();
+builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddAutoMapper(_ => { }, typeof(MappingProfile).Assembly);
+
 
 builder.Services.AddSingleton<Recam.API.Middlewares.Exceptions.ExceptionHandlingService>();
 
@@ -56,6 +68,7 @@ app.UseExceptionHandler(errorApp =>
     });
 });
 
+app.MapControllers();
 app.UseAuthentication();
 app.UseAuthorization();
 app.Run();

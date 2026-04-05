@@ -2,7 +2,7 @@ using System;
 
 namespace Recam.Service.DTOs;
 
-public class AuthResponseDto
+public class RegisterResponseDto
 {
     public string Token { get; set; }
     public string Username { get; set; }
