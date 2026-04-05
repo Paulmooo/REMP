@@ -10,6 +10,8 @@ public class MappingProfile : Profile
 {
     public MappingProfile()
     {
-        CreateMap<RegisterRequestDto, User>();
+        CreateMap<RegisterRequestDto, User>()
+            .ForMember(dest => dest.UserName, opt => opt.MapFrom(src => src.Username));
+
     }
 }
