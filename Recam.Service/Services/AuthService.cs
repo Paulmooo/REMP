@@ -24,12 +24,12 @@ public class AuthService : IAuthService
         _authRepository = authRepository;
     }
 
-    public async Task<AuthResponseDto> RegisterAsync(RegisterRequestDto dto)
+    public async Task<RegisterResponseDto> RegisterAsync(RegisterRequestDto dto)
     {
         var existing = await _authRepository.FindByUsernameAsync(dto.Username);
         if (existing != null)
         {
-            return new AuthResponseDto { Success = false, Message = "Username already exists" };
+            return new RegisterResponseDto { Success = false, Message = "Username already exists" };
         }
 
         var newUser = new User
@@ -41,7 +41,7 @@ public class AuthService : IAuthService
         var result = await _authRepository.RegisterWithRoleAsync(newUser, dto.Password, DefaultUserRole);
         if (!result.Succeeded)
         {
-            return new AuthResponseDto
+            return new RegisterResponseDto
             {
                 Success = false,
                 Errors = result.Errors.Select(e => e.Description).ToList()
@@ -50,7 +50,7 @@ public class AuthService : IAuthService
 
         var token = await GenerateJwtToken(newUser);
 
-        return new AuthResponseDto
+        return new RegisterResponseDto
         {
             Success = true,
             Token = token,

@@ -5,5 +5,5 @@ namespace Recam.Service.Interfaces;
 
 public interface IAuthService
 {
-    Task<AuthResponseDto> RegisterAsync(RegisterRequestDto dto);
+    Task<RegisterResponseDto> RegisterAsync(RegisterRequestDto dto);
 }
