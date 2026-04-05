@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
@@ -17,6 +18,13 @@ builder.Services.AddIdentity<User, Role>()
     .AddEntityFrameworkStores<RecamDbContext>()
     .AddDefaultTokenProviders();
 
+builder.Services.AddAuthorization(options => {
+    options.AddPolicy("AdminPolicy",
+    policy => policy.RequireClaim(ClaimTypes.Role, "admin"));
+    options.AddPolicy("UserPolicy",
+    policy => policy.RequireClaim(ClaimTypes.Role, "user"));
+});
+
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -33,8 +41,7 @@ builder.Services.AddAuthentication(options =>
         ValidateIssuerSigningKey = true,
         ValidIssuer = builder.Configuration["Jwt:Issuer"],
         ValidAudience = builder.Configuration["Jwt:Audience"],
-        IssuerSigningKey = new SymmetricSecurityKey(
-            Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]))
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]))
     };
 });
 
@@ -49,4 +56,6 @@ app.UseExceptionHandler(errorApp =>
     });
 });
 
+app.UseAuthentication();
+app.UseAuthorization();
 app.Run();
