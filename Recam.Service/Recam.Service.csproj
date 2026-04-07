@@ -10,6 +10,7 @@
     <Folder Include="Interfaces/" />
     <Folder Include="Mapper/" />
     <Folder Include="Services/" />
+    <Folder Include="Validators/" />
   </ItemGroup>
 
   <ItemGroup>
@@ -19,6 +20,8 @@
 
   <ItemGroup>
     <PackageReference Include="AutoMapper" Version="16.1.1" />
+    <PackageReference Include="FluentValidation" Version="12.1.1" />
+    <PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="12.1.1" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.5" />
     <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="10.0.5" />
   </ItemGroup>
