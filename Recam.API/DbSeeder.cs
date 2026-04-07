@@ -26,10 +26,8 @@ public static class DbSeeder
             await roleManager.CreateAsync(new Role
             {
                 Name = roleName,
-                NormalizedName = roleName.ToUpperInvariant(),
-                RoleName = roleName
+                NormalizedName = roleName.ToUpperInvariant()
             });
         }
     }
 }
-

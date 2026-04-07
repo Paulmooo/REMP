@@ -1,7 +1,6 @@
 using System;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
-using Recam.Models;
 using Recam.Models.Entities;
 
 namespace Recam.DataAccess.Data;
@@ -16,5 +15,22 @@ public class RecamDbContext : IdentityDbContext<User, Role, string>
 
     public RecamDbContext(DbContextOptions<RecamDbContext> options) : base(options)
     {
+    }
+
+    protected override void OnModelCreating(ModelBuilder builder)
+    {
+        base.OnModelCreating(builder);
+
+        builder.Entity<Agent>()
+            .HasOne(agent => agent.User)
+            .WithOne(user => user.Agent)
+            .HasForeignKey<Agent>(agent => agent.Id)
+            .OnDelete(DeleteBehavior.NoAction);
+
+        builder.Entity<PhotograpyCompany>()
+            .HasOne(company => company.User)
+            .WithOne(user => user.PhotographyCompany)
+            .HasForeignKey<PhotograpyCompany>(company => company.Id)
+            .OnDelete(DeleteBehavior.NoAction);
     }
 }
