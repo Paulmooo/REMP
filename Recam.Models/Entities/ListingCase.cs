@@ -24,7 +24,7 @@ public class ListingCase
     public PropertyType PropertyType { get; set; }
     public SaleCategory SaleCategory { get; set; }
     public ListcaseStatus ListingStatus { get; set; }
-    public string UserId { get; set; } //FIXME: 怎么和agent对应上
+    public string UserId { get; set; }
 
     public User User { get; set; }
     public List<Agent> Agents { get; set; }

@@ -9,6 +9,7 @@ public class Agent
     public string AgentLastName { get; set; }
     public string AvatarUrl { get; set; }
     public string CompanyName { get; set; }
+    public User User { get; set; }
     public List<ListingCase> ListingCases { get; set; }
     public List<PhotograpyCompany> PhotographyCompanies { get; set; }
 }
