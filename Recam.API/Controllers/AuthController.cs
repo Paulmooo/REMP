@@ -33,5 +33,23 @@ namespace Recam.API.Controllers
                 return BadRequest(ApiResponse<RegisterResponseDto>.Fail(ex.Message));
             }
         }
+
+        [HttpPost("login")]
+        public async Task<IActionResult> Login([FromBody] LoginRequestDto dto)
+        {
+            try
+            {
+                var result = await _authService.LoginAsync(dto);
+
+                return Ok(ApiResponse<LoginResponseDto>.Ok(
+                    result,
+                    "Login successful."
+                ));
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(ApiResponse<LoginResponseDto>.Fail(ex.Message));
+            }
+        }
     }
 }

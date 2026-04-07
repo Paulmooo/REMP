@@ -89,4 +89,30 @@ public class AuthService : IAuthService
         return new JwtSecurityTokenHandler().WriteToken(token);
     }
 
+    public async Task<LoginResponseDto> LoginAsync(LoginRequestDto dto)
+    {
+        var user = await _authRepository.FindByUsernameAsync(dto.Username);
+        if (user == null)
+        {
+            throw new ArgumentException("User not found");
+        }
+
+        var isValid = await _authRepository.CheckPasswordAsync(user, dto.Password);
+        if (!isValid)
+        {
+            throw new ArgumentException("Invalid password");
+        }
+
+        var roles = await _authRepository.GetRolesAsync(user);
+        var token = GenerateJwtToken(user, roles.ToList());
+        return new LoginResponseDto
+        {
+            Token = token,
+            Username = user.UserName,
+            Email = user.Email,
+            Roles = roles.ToList()
+        };
+
+    }
+
 }
