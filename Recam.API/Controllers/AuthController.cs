@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Recam.Common.Extensions;
 using Recam.Service.DTOs;
@@ -50,6 +51,14 @@ namespace Recam.API.Controllers
             {
                 return BadRequest(ApiResponse<LoginResponseDto>.Fail(ex.Message));
             }
+        }
+
+        [HttpGet("users")]
+        [Authorize(Policy = "AdminPolicy")]
+        public async Task<IActionResult> GetAllUsers([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
+        {
+            var users = await _authService.GetAllUsersAsync(pageNumber, pageSize);
+            return Ok(ApiResponse<PagedUsersResponseDto>.Ok(users, "Users retrieved successfully."));
         }
     }
 }

@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Recam.DataAccess.Data;
 using Recam.Models.Entities;
 using Recam.Repository.Interfaces;
@@ -59,5 +60,19 @@ public class AuthRepository : IAuthRepository
     public async Task<bool> CheckPasswordAsync(User user, string password)
     {
         return await _userManager.CheckPasswordAsync(user, password);
+    }
+
+    public async Task<int> GetUserCountAsync()
+    {
+        return await _userManager.Users.CountAsync();
+    }
+
+    public async Task<List<User>> GetUsersPagedAsync(int skip, int take)
+    {
+        return await _userManager.Users
+            .OrderBy(u => u.UserName)
+            .Skip(skip)
+            .Take(take)
+            .ToListAsync();
     }
 }

@@ -50,3 +50,5 @@ secrets.json
 # OS files
 .DS_Store
 Thumbs.db
+
+AGENT.md
