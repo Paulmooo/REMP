@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Recam.API;
 using Recam.DataAccess.Data;
 using Recam.Models.Entities;
 using Recam.Repository.Interfaces;
@@ -58,6 +59,11 @@ builder.Services.AddAuthentication(options =>
 });
 
 var app = builder.Build();
+
+using (var scope = app.Services.CreateScope())
+{
+    await DbSeeder.SeedRolesAsync(scope.ServiceProvider);
+}
 
 app.UseExceptionHandler(errorApp =>
 {
