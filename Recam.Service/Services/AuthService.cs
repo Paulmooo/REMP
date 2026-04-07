@@ -28,10 +28,10 @@ public class AuthService : IAuthService
 
     public async Task<RegisterResponseDto> RegisterAsync(RegisterRequestDto dto)
     {
-        var existing = await _authRepository.FindByUsernameAsync(dto.Username);
+        var existing = await _authRepository.FindByUsernameAsync(dto.UserName);
         if (existing != null)
         {
-            throw new ArgumentException("Username already exists");
+            throw new ArgumentException("UserName already exists");
         }
 
         var newUser = _mapper.Map<User>(dto);
@@ -48,7 +48,7 @@ public class AuthService : IAuthService
         return new RegisterResponseDto
         {
             Token = token,
-            Username = newUser.UserName,
+            UserName = newUser.UserName,
             Email = newUser.Email,
             Roles = roles.ToList()
         };
@@ -91,7 +91,7 @@ public class AuthService : IAuthService
 
     public async Task<LoginResponseDto> LoginAsync(LoginRequestDto dto)
     {
-        var user = await _authRepository.FindByUsernameAsync(dto.Username);
+        var user = await _authRepository.FindByUsernameAsync(dto.UserName);
         if (user == null)
         {
             throw new ArgumentException("User not found");
@@ -108,11 +108,36 @@ public class AuthService : IAuthService
         return new LoginResponseDto
         {
             Token = token,
-            Username = user.UserName,
+            UserName = user.UserName,
             Email = user.Email,
             Roles = roles.ToList()
         };
+    }
 
+    public async Task<PagedUsersResponseDto> GetAllUsersAsync(int pageNumber, int pageSize)
+    {
+        if (pageNumber < 1) pageNumber = 1;
+        if (pageSize < 1) pageSize = 10;
+        if (pageSize > 100) pageSize = 100;
+        
+        var totalCount = await _authRepository.GetUserCountAsync();
+        var currentPageUsers = await _authRepository.GetUsersPagedAsync((pageNumber - 1) * pageSize, pageSize);
+        var totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
+
+        var items = _mapper.Map<List<UserListItemDto>>(currentPageUsers);
+
+        for (int i = 0; i < currentPageUsers.Count; i++)
+        {
+            items[i].Roles = await _authRepository.GetRolesAsync(currentPageUsers[i]);
+        }
+
+        return new PagedUsersResponseDto
+        {
+            TotalCount = totalCount,
+            PageNumber = pageNumber,
+            PageSize = pageSize,
+            Users = items
+        };
     }
 
 }

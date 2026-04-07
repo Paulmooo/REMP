@@ -33,9 +33,9 @@ builder.Services.AddIdentity<User, Role>()
 
 builder.Services.AddAuthorization(options => {
     options.AddPolicy("AdminPolicy",
-    policy => policy.RequireClaim(ClaimTypes.Role, "admin"));
+    policy => policy.RequireClaim(ClaimTypes.Role, "Admin"));
     options.AddPolicy("UserPolicy",
-    policy => policy.RequireClaim(ClaimTypes.Role, "user"));
+    policy => policy.RequireClaim(ClaimTypes.Role, "Agent"));
 });
 
 builder.Services.AddAuthentication(options =>
@@ -74,7 +74,7 @@ app.UseExceptionHandler(errorApp =>
     });
 });
 
-app.MapControllers();
 app.UseAuthentication();
 app.UseAuthorization();
+app.MapControllers();
 app.Run();

@@ -14,7 +14,7 @@ public static class DbSeeder
 
         var roles = new[]
         {
-            "CompanyAdmin",
+            "Admin",
             "Agent"
         };
 
