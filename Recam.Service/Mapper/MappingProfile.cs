@@ -11,8 +11,10 @@ public class MappingProfile : Profile
     public MappingProfile()
     {
         CreateMap<RegisterRequestDto, User>();
-
         CreateMap<User, UserListItemDto>()
             .ForMember(dest => dest.Roles, opt => opt.Ignore());
+
+        CreateMap<CreateListingCaseRequestDto, ListingCase>();
+
     }
 }
