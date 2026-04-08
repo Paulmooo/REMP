@@ -14,21 +14,24 @@ public class ListingCaseService : IListingCaseService
 {
     private readonly IListingCaseRepository _listingCaseRepository;
     private readonly IMapper _mapper;
-    private readonly IValidator<CreateListingCaseRequestDto> _validator;
+    private readonly IValidator<CreateListingCaseRequestDto> _createValidator;
+    private readonly IValidator<UpdateListingCaseRequestDto> _updateValidator;
 
     public ListingCaseService(
         IListingCaseRepository listingCaseRepository,
         IMapper mapper,
-        IValidator<CreateListingCaseRequestDto> validator)
+        IValidator<CreateListingCaseRequestDto> createValidator,
+        IValidator<UpdateListingCaseRequestDto> updateValidator)
     {
         _listingCaseRepository = listingCaseRepository;
         _mapper = mapper;
-        _validator = validator;
+        _createValidator = createValidator;
+        _updateValidator = updateValidator;
     }
 
     public async Task<CreateListingCaseResponseDto> CreateListingCaseAsync(CreateListingCaseRequestDto dto, string userId)
     {
-        var validationResult = await _validator.ValidateAsync(dto);
+        var validationResult = await _createValidator.ValidateAsync(dto);
         if (!validationResult.IsValid)
         {
             var errors = string.Join("; ", validationResult.Errors.Select(e => e.ErrorMessage));
@@ -47,16 +50,7 @@ public class ListingCaseService : IListingCaseService
         listingCase.UserId = userId;
         listingCase.ListingStatus = ListcaseStatus.Created;
 
-        int newId;
-        try
-        {
-            newId = await _listingCaseRepository.CreateListingCaseAsync(listingCase);
-        }
-        catch (DbUpdateException ex)
-        {
-            var detail = ex.InnerException?.Message ?? ex.Message;
-            throw new ArgumentException($"Database write failed: {detail}");
-        }
+        int newId = await _listingCaseRepository.CreateListingCaseAsync(listingCase);
 
         return new CreateListingCaseResponseDto
         {
@@ -65,4 +59,39 @@ public class ListingCaseService : IListingCaseService
         };
     }
 
+    public async Task UpdateListingCaseAsync(int id, UpdateListingCaseRequestDto dto, string userId)
+    {
+        var validationResult = await _updateValidator.ValidateAsync(dto);
+        if (!validationResult.IsValid)
+        {
+            var errors = string.Join("; ", validationResult.Errors.Select(e => e.ErrorMessage));
+            throw new ArgumentException(errors);
+        }
+
+        var userExists = await _listingCaseRepository.UserExistsAsync(userId);
+        if (!userExists)
+        {
+            throw new UnauthorizedAccessException("The user in the JWT token does not exist.");
+        }
+
+        var existingCase = await _listingCaseRepository.GetListingCaseByIdAsync(id);
+        if (existingCase == null)
+        {
+            throw new KeyNotFoundException($"Listing case with ID {id} not found.");
+        }
+
+        if (existingCase.IsDeleted)
+        {
+            throw new ArgumentException("Deleted listing cases cannot be updated.");
+        }
+
+        if (existingCase.ListingStatus == ListcaseStatus.Delivered)
+        {
+            throw new ArgumentException("Listing case is delivered and cannot be updated.");
+        }
+
+        _mapper.Map(dto, existingCase);
+
+        await _listingCaseRepository.UpdateListingCaseAsync(existingCase);
+    }
 }
