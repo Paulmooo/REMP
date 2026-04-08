@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using System.Text;
+using FluentValidation;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -12,6 +13,7 @@ using Recam.Repository.Repositories;
 using Recam.Service.Interfaces;
 using Recam.Service.Mapper;
 using Recam.Service.Services;
+using Recam.Service.Validators;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -19,8 +21,10 @@ builder.Services.AddControllers();
 
 builder.Services.AddScoped<IAuthRepository, AuthRepository>();
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<IListingCaseRepository, ListingCaseRepository>();
+builder.Services.AddScoped<IListingCaseService, ListingCaseService>();
 builder.Services.AddAutoMapper(_ => { }, typeof(MappingProfile).Assembly);
-
+builder.Services.AddValidatorsFromAssemblyContaining<CreateListingCaseRequestValidator>();
 
 builder.Services.AddSingleton<Recam.API.Middlewares.Exceptions.ExceptionHandlingService>();
 
