@@ -1,6 +1,5 @@
 using System;
 using AutoMapper;
-using Azure;
 using Recam.Models.Entities;
 using Recam.Service.DTOs;
 
@@ -15,6 +14,6 @@ public class MappingProfile : Profile
             .ForMember(dest => dest.Roles, opt => opt.Ignore());
 
         CreateMap<CreateListingCaseRequestDto, ListingCase>();
-
+        CreateMap<UpdateListingCaseRequestDto, ListingCase>();
     }
 }

@@ -26,4 +26,15 @@ public class ListingCaseRepository : IListingCaseRepository
         await _dbContext.SaveChangesAsync();
         return listingCase.Id;
     }
+
+    public async Task<ListingCase?> GetListingCaseByIdAsync(int id)
+    {
+        return await _dbContext.ListingCases.FirstOrDefaultAsync(x => x.Id == id && !x.IsDeleted);
+    }
+
+    public async Task UpdateListingCaseAsync(ListingCase listingCase)
+    {
+        _dbContext.ListingCases.Update(listingCase);
+        await _dbContext.SaveChangesAsync();
+    }
 }
