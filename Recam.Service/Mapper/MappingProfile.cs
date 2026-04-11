@@ -1,7 +1,7 @@
 using System;
 using AutoMapper;
 using Recam.Models.Entities;
-using Recam.Service.DTOs;
+using Recam.Service.DTOs.Auth;
 using Recam.Service.DTOs.ListingCase;
 
 namespace Recam.Service.Mapper;

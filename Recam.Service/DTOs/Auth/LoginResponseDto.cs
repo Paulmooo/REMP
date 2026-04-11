@@ -1,6 +1,6 @@
 using System;
 
-namespace Recam.Service.DTOs;
+namespace Recam.Service.DTOs.Auth;
 
 public class LoginResponseDto
 {

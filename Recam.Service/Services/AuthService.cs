@@ -7,7 +7,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using Recam.Models.Entities;
 using Recam.Repository.Interfaces;
-using Recam.Service.DTOs;
+using Recam.Service.DTOs.Auth;
 using Recam.Service.Interfaces;
 
 namespace Recam.Service.Services;

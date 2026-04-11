@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Recam.Common.Extensions;
-using Recam.Service.DTOs;
+using Recam.Service.DTOs.Auth;
 using Recam.Service.Interfaces;
 
 namespace Recam.API.Controllers
