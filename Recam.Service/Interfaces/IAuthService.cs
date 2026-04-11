@@ -1,5 +1,4 @@
-using System;
-using Recam.Service.DTOs;
+using Recam.Service.DTOs.Auth;
 
 namespace Recam.Service.Interfaces;
 
