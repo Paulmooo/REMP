@@ -1,11 +1,10 @@
-using System;
 using AutoMapper;
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 using Recam.Models.Entities;
 using Recam.Models.Enums;
 using Recam.Repository.Interfaces;
-using Recam.Service.DTOs;
+using Recam.Service.DTOs.ListingCase;
 using Recam.Service.Interfaces;
 
 namespace Recam.Service.Services;

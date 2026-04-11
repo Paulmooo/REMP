@@ -1,9 +1,9 @@
 using System;
 using Recam.Models.Enums;
 
-namespace Recam.Service.DTOs;
+namespace Recam.Service.DTOs.ListingCase;
 
-public class CreateListingCaseRequestDto
+public class UpdateListingCaseRequestDto
 {
     public string Title { get; set; }
     public string Description { get; set; }
@@ -20,4 +20,5 @@ public class CreateListingCaseRequestDto
     public double FloorArea { get; set; }
     public PropertyType PropertyType { get; set; }
     public SaleCategory SaleCategory { get; set; }
+    public ListcaseStatus ListingStatus { get; set; }
 }

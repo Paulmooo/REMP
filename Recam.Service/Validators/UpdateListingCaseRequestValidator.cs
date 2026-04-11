@@ -1,6 +1,5 @@
-using System;
 using FluentValidation;
-using Recam.Service.DTOs;
+using Recam.Service.DTOs.ListingCase;
 
 namespace Recam.Service.Validators;
 

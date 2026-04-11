@@ -1,6 +1,6 @@
 using System;
 
-namespace Recam.Service.DTOs;
+namespace Recam.Service.DTOs.ListingCase;
 
 public class CreateListingCaseResponseDto
 {
