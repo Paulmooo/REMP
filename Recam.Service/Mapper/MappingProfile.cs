@@ -16,5 +16,6 @@ public class MappingProfile : Profile
 
         CreateMap<CreateListingCaseRequestDto, ListingCase>();
         CreateMap<UpdateListingCaseRequestDto, ListingCase>();
+        CreateMap<ListingCase, ListingCaseItemDto>();
     }
 }

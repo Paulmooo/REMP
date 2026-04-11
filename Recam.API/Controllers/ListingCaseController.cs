@@ -53,11 +53,20 @@ namespace Recam.API.Controllers
             return Ok(ApiResponse<object>.Ok(new { Id = id }, "Listing case updated successfully."));
         }
 
-        // [HttpGet("listings")]
-        // public Task<IActionResult> GetAllListingCases([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10])
-        // {
-        //     // var listingCases = _listingCaseService.GetAllListingCasesAsync(pageNumber, pageSize);
-        //     // return Ok<ApiResponse(PagedList)>
-        // }
+        [HttpGet("listings")]
+        [Authorize]
+        public async Task<IActionResult> GetAllListingCases([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
+        {
+            var userId = User.FindFirstValue("uid")
+                ?? User.Claims.LastOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
+            
+            if (string.IsNullOrWhiteSpace(userId))
+            {
+                throw new UnauthorizedAccessException("User ID claim is missing in token.");
+            }
+            var role = User.FindFirstValue(ClaimTypes.Role);
+            var listingCases = await _listingCaseService.GetAllListingCasesAsync(pageNumber, pageSize, userId, role);
+            return Ok(ApiResponse<PagedListingCasesResponseDto>.Ok(listingCases, "Listing cases retrieved successfully."));
+        }
     }
 }

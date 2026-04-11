@@ -2,7 +2,8 @@ namespace Recam.Models.Enums;
 
 public enum MediaType
 {
-    Image = 1,
+    Photos = 1,
     Video = 2,
-    FloorPlan = 3
+    FloorPlan = 3,
+    VRTour = 4
 }

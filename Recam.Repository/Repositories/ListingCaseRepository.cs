@@ -37,4 +37,39 @@ public class ListingCaseRepository : IListingCaseRepository
         _dbContext.ListingCases.Update(listingCase);
         await _dbContext.SaveChangesAsync();
     }
+
+    public async Task<int> GetListingCaseCountAsync(string userId)
+    {
+        return await _dbContext.ListingCases
+            .Where(u => u.UserId == userId)
+            .Where(x => !x.IsDeleted)
+            .CountAsync();
+    }
+    public async Task<List<ListingCase>> GetListingCasesPagedAsync(int skip, int take, string userId)
+    {
+        return await _dbContext.ListingCases
+            .Where(u => u.UserId == userId)
+            .Where(x => !x.IsDeleted)
+            .OrderByDescending(x => x.CreatedAt)
+            .Skip(skip)
+            .Take(take)
+            .ToListAsync();
+    }
+    public async Task<int> GetListingCaseAssignedToAgentCountAsync(string userId)
+    {
+        return await _dbContext.ListingCases
+            .Where(x => x.Agents.Any(a => a.Id == userId))
+            .Where(x => !x.IsDeleted)
+            .CountAsync();
+    }
+    public async Task<List<ListingCase>> GetListingCasePagedAssignedToAgentAsync(int skip, int take, string userId)
+    {
+        return await _dbContext.ListingCases
+            .Where(x => x.Agents.Any(a => a.Id == userId))
+            .Where(x => !x.IsDeleted)
+            .OrderByDescending(x => x.CreatedAt)
+            .Skip(skip)
+            .Take(take)
+            .ToListAsync();
+    }
 }
