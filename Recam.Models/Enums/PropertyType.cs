@@ -3,7 +3,8 @@ namespace Recam.Models.Enums;
 public enum PropertyType
 {
     House = 1,
-    Apartment = 2,
+    Unit = 2,
     Townhouse = 3,
-    Land = 4
+    Villa = 4,
+    Others = 5
 }

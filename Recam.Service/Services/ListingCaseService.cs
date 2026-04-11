@@ -93,4 +93,42 @@ public class ListingCaseService : IListingCaseService
 
         await _listingCaseRepository.UpdateListingCaseAsync(existingCase);
     }
+
+    public async Task<PagedListingCasesResponseDto> GetAllListingCasesAsync(int pageNumber, int pageSize, string userId, string role)
+    {
+        var userExists = await _listingCaseRepository.UserExistsAsync(userId);
+        if (!userExists)
+        {
+            throw new UnauthorizedAccessException("The user in the JWT token does not exist.");
+        }
+
+        if (pageNumber < 1) pageNumber = 1;
+        if (pageSize < 1) pageSize = 10;
+        if (pageSize > 100) pageSize = 100;
+
+        int totalCount;
+        List<ListingCase> currentPagedCases;
+
+        if (role == "Admin")
+        {
+            totalCount = await _listingCaseRepository.GetListingCaseCountAsync(userId);
+            currentPagedCases = await _listingCaseRepository.GetListingCasesPagedAsync((pageNumber - 1) * pageSize, pageSize, userId);
+        }
+        else if (role == "Agent")
+        {
+            totalCount = await _listingCaseRepository.GetListingCaseAssignedToAgentCountAsync(userId);
+            currentPagedCases = await _listingCaseRepository.GetListingCasePagedAssignedToAgentAsync((pageNumber - 1) * pageSize, pageSize, userId);
+        }
+        else throw new UnauthorizedAccessException("Unsupported role");
+        
+        return new PagedListingCasesResponseDto
+            {
+                TotalCount = totalCount,
+                PageNumber = pageNumber,
+                PageSize = pageSize,
+                ListingCases = _mapper.Map<List<ListingCaseItemDto>>(currentPagedCases)
+            };
+        
+        
+    }
 }
