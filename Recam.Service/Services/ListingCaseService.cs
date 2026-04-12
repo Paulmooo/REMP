@@ -128,7 +128,27 @@ public class ListingCaseService : IListingCaseService
                 PageSize = pageSize,
                 ListingCases = _mapper.Map<List<ListingCaseItemDto>>(currentPagedCases)
             };
-        
-        
+    }
+
+    public async Task DeleteListingCaseAsync(int id, string userId)
+    {
+        var userExists = await _listingCaseRepository.UserExistsAsync(userId);
+        if (!userExists)        
+        {
+            throw new UnauthorizedAccessException("The user in the JWT token does not exist.");
+        }
+
+        var existingCase = await _listingCaseRepository.GetListingCaseByIdAsync(id);
+        if (existingCase == null)
+        {
+            throw new KeyNotFoundException($"Listing case with ID {id} not found.");
+        }
+
+        if (existingCase.UserId != userId)
+        {
+            throw new UnauthorizedAccessException("Users can only delete their own listing cases.");
+        }
+
+        await _listingCaseRepository.DeleteListingCaseAsync(id);
     }
 }

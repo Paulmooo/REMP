@@ -72,4 +72,15 @@ public class ListingCaseRepository : IListingCaseRepository
             .Take(take)
             .ToListAsync();
     }
+
+    public async Task DeleteListingCaseAsync(int id)
+    {
+        var listingCase = await _dbContext.ListingCases.FindAsync(id);
+        if (listingCase != null)
+        {
+            _dbContext.ListingCases.Remove(listingCase);
+            await _dbContext.SaveChangesAsync();
+        }
+    }
+
 }

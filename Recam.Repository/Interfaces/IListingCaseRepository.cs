@@ -13,4 +13,8 @@ public interface IListingCaseRepository
     Task<List<ListingCase>> GetListingCasesPagedAsync(int skip, int take, string userId);
     Task<int> GetListingCaseAssignedToAgentCountAsync(string userId);
     Task<List<ListingCase>> GetListingCasePagedAssignedToAgentAsync(int skip, int take, string userId);
+
+    Task DeleteListingCaseAsync(int id);
+    // Task DeleteMediaAssetAsync(int mediaAssetId);
+    // Task DeleteCaseContactAsync(int caseContactId);
 }
