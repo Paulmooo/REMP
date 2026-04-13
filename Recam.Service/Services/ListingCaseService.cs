@@ -151,4 +151,35 @@ public class ListingCaseService : IListingCaseService
 
         await _listingCaseRepository.DeleteListingCaseAsync(id);
     }
+
+    public async Task<ListingCaseItemDto> GetListingCaseDetailsAsync(int listingCaseId, string userId, string role)
+    {
+        var userExists = await _listingCaseRepository.UserExistsAsync(userId);
+        if (!userExists)
+        {
+            throw new UnauthorizedAccessException("The user in the JWT token does not exist.");
+        }
+
+        var listingCase = await _listingCaseRepository.GetListingCaseDetailsByIdAsync(listingCaseId);
+        if (listingCase == null || listingCase.IsDeleted)
+        {
+            throw new KeyNotFoundException($"Listing case with ID {listingCaseId} not found.");
+        }
+
+        if (role == "Admin")
+        {
+            if (listingCase.UserId != userId)
+                throw new UnauthorizedAccessException("Admins can only access their own listing cases.");
+        }
+        else if (role == "Agent")
+        {
+            if (listingCase.Agents?.Any(a => a.Id == userId) != true)
+                throw new UnauthorizedAccessException("Agents can only access listing cases assigned to them.");
+        }
+        else
+        {
+            throw new UnauthorizedAccessException("Unsupported role");
+        }
+        return _mapper.Map<ListingCaseItemDto>(listingCase);
+    }
 }

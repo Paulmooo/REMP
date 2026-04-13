@@ -83,4 +83,14 @@ public class ListingCaseRepository : IListingCaseRepository
         }
     }
 
+    public async Task<ListingCase?> GetListingCaseDetailsByIdAsync(int id)
+    {
+        return await _dbContext.ListingCases
+            .AsNoTracking()
+            .Include(x => x.Agents)
+            .Include(x => x.MediaAssets)
+            .Include(x => x.CaseContacts)
+            .FirstOrDefaultAsync(x => x.Id == id && !x.IsDeleted);
+    }
+
 }

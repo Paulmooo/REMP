@@ -84,5 +84,22 @@ namespace Recam.API.Controllers
             await _listingCaseService.DeleteListingCaseAsync(id, userId);
             return Ok(ApiResponse<object>.Ok(new { Id = id }, "Listing case deleted successfully."));
         }
+
+        [HttpGet("listings/{id}")]
+        [Authorize]
+        public async Task<IActionResult> GetListingCaseDetails(int id)
+        {
+            var userId = User.FindFirstValue("uid")
+                ?? User.Claims.LastOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
+            
+            if (string.IsNullOrWhiteSpace(userId))
+            {
+                throw new UnauthorizedAccessException("User ID claim is missing in token.");
+            }
+
+            var role = User.FindFirstValue(ClaimTypes.Role);
+            var listingCase = await _listingCaseService.GetListingCaseDetailsAsync(id, userId, role);
+            return Ok(ApiResponse<ListingCaseItemDto>.Ok(listingCase, "Listing case details retrieved successfully."));
+        }
     }
 }
