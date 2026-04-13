@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Recam.Common.Extensions;
+using Recam.Models.Enums;
 using Recam.Service.DTOs.ListingCase;
 using Recam.Service.Interfaces;
 using System.Security.Claims;
@@ -100,6 +101,27 @@ namespace Recam.API.Controllers
             var role = User.FindFirstValue(ClaimTypes.Role);
             var listingCase = await _listingCaseService.GetListingCaseDetailsAsync(id, userId, role);
             return Ok(ApiResponse<ListingCaseItemDto>.Ok(listingCase, "Listing case details retrieved successfully."));
+        }
+
+        [HttpPatch("listings/{id}/status")]
+        [Authorize]
+        public async Task<IActionResult> ChangeListingCaseStatus(int id, [FromQuery] ListcaseStatus newStatus)
+        {
+            if (!Enum.IsDefined(typeof(ListcaseStatus), newStatus))
+            {
+                return BadRequest(ApiResponse<object>.Fail("Invalid status value."));
+            }
+            
+            var userId = User.FindFirstValue("uid")
+                ?? User.Claims.LastOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
+            
+            if (string.IsNullOrWhiteSpace(userId))
+            {
+                throw new UnauthorizedAccessException("User ID claim is missing in token.");
+            }
+
+            await _listingCaseService.ChangeListingCaseStatusAsync(id, newStatus, userId);
+            return Ok(ApiResponse<object>.Ok(new { Id = id, NewStatus = newStatus }, "Listing case status updated successfully."));
         }
     }
 }

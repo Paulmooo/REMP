@@ -20,5 +20,4 @@ public class UpdateListingCaseRequestDto
     public double FloorArea { get; set; }
     public PropertyType PropertyType { get; set; }
     public SaleCategory SaleCategory { get; set; }
-    public ListcaseStatus ListingStatus { get; set; }
 }

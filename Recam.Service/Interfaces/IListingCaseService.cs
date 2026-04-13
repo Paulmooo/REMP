@@ -1,3 +1,4 @@
+using Recam.Models.Enums;
 using Recam.Service.DTOs.ListingCase;
 
 namespace Recam.Service.Interfaces;
@@ -9,4 +10,5 @@ public interface IListingCaseService
     Task<PagedListingCasesResponseDto> GetAllListingCasesAsync(int pageNumber, int pageSize, string userId, string role);
     Task DeleteListingCaseAsync(int id, string userId);
     Task<ListingCaseItemDto> GetListingCaseDetailsAsync(int id, string userId, string role);
+    Task ChangeListingCaseStatusAsync(int id, ListcaseStatus newStatus, string userId);
 }
