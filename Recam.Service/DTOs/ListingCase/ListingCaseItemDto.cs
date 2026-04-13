@@ -24,7 +24,7 @@ public class ListingCaseItemDto
     public SaleCategory SaleCategory { get; set; }
     public ListcaseStatus ListingStatus { get; set; }
 
-    public List<Agent> Agents { get; set; }
-    public List<CaseContact> CaseContacts { get; set; }
-    public List<MediaAsset> MediaAssets { get; set; } 
+    public List<AgentBriefDto> Agents { get; set; }
+    public List<CaseContactDto> CaseContacts { get; set; }
+    public List<MediaAssetDto> MediaAssets { get; set; } 
 }

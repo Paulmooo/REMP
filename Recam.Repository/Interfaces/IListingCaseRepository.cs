@@ -15,6 +15,5 @@ public interface IListingCaseRepository
     Task<List<ListingCase>> GetListingCasePagedAssignedToAgentAsync(int skip, int take, string userId);
 
     Task DeleteListingCaseAsync(int id);
-    // Task DeleteMediaAssetAsync(int mediaAssetId);
-    // Task DeleteCaseContactAsync(int caseContactId);
+    Task<ListingCase?> GetListingCaseDetailsByIdAsync(int id);
 }
