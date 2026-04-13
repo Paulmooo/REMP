@@ -15,7 +15,9 @@ public class MappingProfile : Profile
             .ForMember(dest => dest.Roles, opt => opt.Ignore());
 
         CreateMap<CreateListingCaseRequestDto, ListingCase>();
-        CreateMap<UpdateListingCaseRequestDto, ListingCase>();
+        CreateMap<UpdateListingCaseRequestDto, ListingCase>()
+            .ForMember(dest => dest.ListingStatus, opt => opt.Ignore());
+
         CreateMap<ListingCase, ListingCaseItemDto>();
     }
 }

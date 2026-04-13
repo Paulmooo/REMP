@@ -44,8 +44,5 @@ public class UpdateListingCaseRequestValidator : AbstractValidator<UpdateListing
 
         RuleFor(x => x.SaleCategory)
             .IsInEnum().WithMessage("Invalid SaleCategory value.");
-
-        RuleFor(x => x.ListingStatus)
-            .IsInEnum().WithMessage("Invalid ListingStatus value.");
     }
 }

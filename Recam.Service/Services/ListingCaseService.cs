@@ -182,4 +182,54 @@ public class ListingCaseService : IListingCaseService
         }
         return _mapper.Map<ListingCaseItemDto>(listingCase);
     }
+
+
+    public async Task ChangeListingCaseStatusAsync(int id, ListcaseStatus newStatus, string userId)
+    {
+        var userExists = await _listingCaseRepository.UserExistsAsync(userId);
+        if (!userExists)
+        {
+            throw new UnauthorizedAccessException("The user in the JWT token does not exist.");
+        }
+
+        var existingCase = await _listingCaseRepository.GetListingCaseByIdAsync(id);
+        if (existingCase == null)
+        {
+            throw new KeyNotFoundException($"Listing case with ID {id} not found.");
+        }
+
+        if (existingCase.IsDeleted)
+        {
+            throw new ArgumentException("Deleted listing cases cannot be updated.");
+        }
+
+        var isOwner = existingCase.UserId == userId;
+        var isAssignedAgent = existingCase.Agents?.Any(a => a.Id == userId) == true;
+
+        if (!isOwner && !isAssignedAgent)
+            throw new UnauthorizedAccessException("Only owner or assigned agent can update status.");
+
+
+        if (!Enum.IsDefined(typeof(ListcaseStatus), newStatus))
+            throw new ArgumentException("Invalid status value.");
+
+        var current = existingCase.ListingStatus;
+
+        if (!IsValidTransition(current, newStatus))
+            throw new ArgumentException($"Invalid status transition: {current} -> {newStatus}.");
+
+        existingCase.ListingStatus = newStatus;
+        await _listingCaseRepository.UpdateListingCaseAsync(existingCase);
+    }
+
+    private static bool IsValidTransition(ListcaseStatus current, ListcaseStatus next)
+    {
+        return (current, next) switch
+        {
+            (ListcaseStatus.Created, ListcaseStatus.Pending) => true,
+            (ListcaseStatus.Pending, ListcaseStatus.Delivered) => true,
+            _ => false
+        };
+    }
+
 }
