@@ -65,7 +65,11 @@ namespace Recam.API.Controllers
             {
                 throw new UnauthorizedAccessException("User ID claim is missing in token.");
             }
-            var role = User.FindFirstValue(ClaimTypes.Role);
+            var roles = User.FindAll(ClaimTypes.Role)
+                .Select(c => c.Value)
+                .Distinct()
+                .ToList();
+            var role = roles.FirstOrDefault();
             var listingCases = await _listingCaseService.GetAllListingCasesAsync(pageNumber, pageSize, userId, role);
             return Ok(ApiResponse<PagedListingCasesResponseDto>.Ok(listingCases, "Listing cases retrieved successfully."));
         }
@@ -98,7 +102,11 @@ namespace Recam.API.Controllers
                 throw new UnauthorizedAccessException("User ID claim is missing in token.");
             }
 
-            var role = User.FindFirstValue(ClaimTypes.Role);
+            var roles = User.FindAll(ClaimTypes.Role)
+                .Select(c => c.Value)
+                .Distinct()
+                .ToList();
+            var role = roles.FirstOrDefault();
             var listingCase = await _listingCaseService.GetListingCaseDetailsAsync(id, userId, role);
             return Ok(ApiResponse<ListingCaseItemDto>.Ok(listingCase, "Listing case details retrieved successfully."));
         }
