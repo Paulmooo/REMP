@@ -19,5 +19,6 @@ public class MappingProfile : Profile
             .ForMember(dest => dest.ListingStatus, opt => opt.Ignore());
 
         CreateMap<ListingCase, ListingCaseItemDto>();
+        CreateMap<MediaAsset, MediaAssetDto>();
     }
 }

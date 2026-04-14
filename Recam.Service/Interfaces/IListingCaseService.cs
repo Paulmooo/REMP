@@ -11,4 +11,6 @@ public interface IListingCaseService
     Task DeleteListingCaseAsync(int id, string userId);
     Task<ListingCaseItemDto> GetListingCaseDetailsAsync(int id, string userId, string role);
     Task ChangeListingCaseStatusAsync(int id, ListcaseStatus newStatus, string userId);
+    Task<List<MediaAssetGroupDto>> GetListingCaseMediaAssetsAsync(int listingCaseId, string userId, string role);
+
 }

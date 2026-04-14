@@ -90,7 +90,7 @@ public class ListingCaseRepository : IListingCaseRepository
         return await _dbContext.ListingCases
             .AsNoTracking()
             .Include(x => x.Agents)
-            .Include(x => x.MediaAssets)
+            .Include(x => x.MediaAssets.Where(m => !m.IsDeleted))
             .Include(x => x.CaseContacts)
             .FirstOrDefaultAsync(x => x.Id == id && !x.IsDeleted);
     }
