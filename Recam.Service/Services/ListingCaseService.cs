@@ -209,7 +209,6 @@ public class ListingCaseService : IListingCaseService
         if (!isOwner && !isAssignedAgent)
             throw new UnauthorizedAccessException("Only owner or assigned agent can update status.");
 
-
         if (!Enum.IsDefined(typeof(ListcaseStatus), newStatus))
             throw new ArgumentException("Invalid status value.");
 
@@ -222,6 +221,7 @@ public class ListingCaseService : IListingCaseService
         await _listingCaseRepository.UpdateListingCaseAsync(existingCase);
     }
 
+    // helper method to validate allowed status transitions
     private static bool IsValidTransition(ListcaseStatus current, ListcaseStatus next)
     {
         return (current, next) switch
@@ -232,4 +232,46 @@ public class ListingCaseService : IListingCaseService
         };
     }
 
+    public async Task<List<MediaAssetGroupDto>> GetListingCaseMediaAssetsAsync(int listingCaseId, string userId, string role)
+    {
+        var userExists = await _listingCaseRepository.UserExistsAsync(userId);
+        if (!userExists)
+        {
+            throw new UnauthorizedAccessException("The user in the JWT token does not exist.");
+        }
+
+        var listingCase = await _listingCaseRepository.GetListingCaseDetailsByIdAsync(listingCaseId);
+        if (listingCase == null || listingCase.IsDeleted)
+        {
+            throw new KeyNotFoundException($"Listing case with ID {listingCaseId} not found.");
+        }
+
+        if (role == "Admin")
+        {
+            if (listingCase.UserId != userId)
+                throw new UnauthorizedAccessException("Admins can only access their own listing cases.");
+        }
+        else if (role == "Agent")
+        {
+            if (listingCase.Agents?.Any(a => a.Id == userId) != true)
+                throw new UnauthorizedAccessException("Agents can only access listing cases assigned to them.");
+        }
+        else
+        {
+            throw new UnauthorizedAccessException("Unsupported role");
+        }
+
+        var mediaDtos = _mapper.Map<List<MediaAssetDto>>(listingCase.MediaAssets ?? new List<MediaAsset>());
+
+        return mediaDtos
+            .GroupBy(x => x.MediaType)
+            .Select(g => new MediaAssetGroupDto
+            {
+                MediaType = g.Key,
+                Items = g.OrderByDescending(x => x.UploadedAt).ToList()
+            })
+            .OrderBy(g => g.MediaType)
+            .ToList();
+
+    }
 }

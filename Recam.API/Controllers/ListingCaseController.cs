@@ -131,5 +131,26 @@ namespace Recam.API.Controllers
             await _listingCaseService.ChangeListingCaseStatusAsync(id, newStatus, userId);
             return Ok(ApiResponse<object>.Ok(new { Id = id, NewStatus = newStatus }, "Listing case status updated successfully."));
         }
+
+        [HttpGet("listings/{id}/media")]
+        [Authorize]
+        public async Task<IActionResult> GetListingCaseMediaAsset(int id)
+        {
+            var userId = User.FindFirstValue("uid")
+                ?? User.Claims.LastOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
+            
+            if (string.IsNullOrWhiteSpace(userId))
+            {
+                throw new UnauthorizedAccessException("User ID claim is missing in token.");
+            }
+
+            var roles = User.FindAll(ClaimTypes.Role)
+                .Select(c => c.Value)
+                .Distinct()
+                .ToList();
+            var role = roles.FirstOrDefault();
+            var mediaAssets = await _listingCaseService.GetListingCaseMediaAssetsAsync(id, userId, role);
+            return Ok(ApiResponse<List<MediaAssetGroupDto>>.Ok(mediaAssets, "Listing case media assets retrieved successfully."));
+        }
     }
 }
