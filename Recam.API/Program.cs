@@ -25,6 +25,8 @@ builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IListingCaseRepository, ListingCaseRepository>();
 builder.Services.AddScoped<IListingCaseService, ListingCaseService>();
+builder.Services.AddScoped<IMediaAssetRepository, MediaAssetRepository>();
+builder.Services.AddScoped<IMediaAssetService, MediaAssetService>();
 builder.Services.AddAutoMapper(_ => { }, typeof(MappingProfile).Assembly);
 builder.Services.AddValidatorsFromAssemblyContaining<CreateListingCaseRequestValidator>();
 
