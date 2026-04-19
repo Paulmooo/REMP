@@ -11,5 +11,5 @@ public class Agent
     public string CompanyName { get; set; }
     public User User { get; set; }
     public List<ListingCase> ListingCases { get; set; }
-    public List<PhotograpyCompany> PhotographyCompanies { get; set; }
+    public List<PhotographyCompany> PhotographyCompanies { get; set; }
 }
