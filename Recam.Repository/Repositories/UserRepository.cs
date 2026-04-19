@@ -53,4 +53,23 @@ public class UserRepository : IUserRepository
             .OrderByDescending(x => x.CreatedAt)
             .ToListAsync();
     }
+
+    public async Task<Agent?> GetAgentByIdAsync(string userId)
+    {
+        return await _dbContext.Agents
+            .FirstOrDefaultAsync(a => a.Id == userId);
+    }
+
+    public async Task<PhotographyCompany?> GetPhotographyCompanyByIdAsync(string companyId)
+    {
+        return await _dbContext.PhotographyCompanies
+            .Include(c => c.Agents)
+            .FirstOrDefaultAsync(c => c.Id == companyId);
+    }
+
+    public async Task AddAgentToPhotographyCompany(PhotographyCompany company, Agent agent)
+    {
+        company.Agents.Add(agent);
+        await _dbContext.SaveChangesAsync();
+    }
 }

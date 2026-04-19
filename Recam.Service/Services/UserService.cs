@@ -53,4 +53,27 @@ public class UserService : IUserService
             ListingCaseIds = listingCaseIds
         };
     }
+
+    public async Task AddAgentToPhotographyCompanyAsync(string userId, string companyId)
+    {
+        var agent = await _userRepository.GetAgentByIdAsync(userId);
+        if (agent == null)
+        {
+            throw new KeyNotFoundException("Agent not found");
+        }
+
+        var company = await _userRepository.GetPhotographyCompanyByIdAsync(companyId);
+        if (company == null)
+        {
+            throw new KeyNotFoundException("Photography company not found");
+        }
+
+        if (company.Agents.Any(a => a.Id == userId))
+        {
+            throw new InvalidOperationException("Agent is already part of the photography company");
+        }
+
+        await _userRepository.AddAgentToPhotographyCompany(company, agent);
+
+    }
 }

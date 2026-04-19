@@ -37,5 +37,13 @@ namespace Recam.API.Controllers
                 "User info retrieved successfully."
             ));
         }
+
+        [HttpPost("photographycompany/{companyId}/agent")]
+        [Authorize(Policy = "AdminPolicy")]
+        public async Task<IActionResult> AddAgentToPhotographyCompany(string companyId, [FromBody] AddAgentToPhotographyCompanyRequestDto dto)
+        {
+            await _userService.AddAgentToPhotographyCompanyAsync(dto.AgentId, companyId);
+            return Ok(ApiResponse<string>.Ok(null, "Agent added to photography company successfully."));
+        }
     }
 }

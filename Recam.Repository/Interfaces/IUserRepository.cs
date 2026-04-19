@@ -9,4 +9,7 @@ public interface IUserRepository
     Task<List<string>> GetRolesByUserIdAsync(string userId);
     Task<List<ListingCase>> GetListingCasesByUserIdAdminAsync(string userId);
     Task<List<ListingCase>> GetListingCasesByUserIdAgentAsync(string userId);
+    Task<Agent?> GetAgentByIdAsync(string userId);
+    Task<PhotographyCompany?> GetPhotographyCompanyByIdAsync(string companyId);
+    Task AddAgentToPhotographyCompany(PhotographyCompany company, Agent agent);
 }

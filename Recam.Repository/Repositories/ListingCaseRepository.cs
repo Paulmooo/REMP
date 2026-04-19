@@ -30,8 +30,8 @@ public class ListingCaseRepository : IListingCaseRepository
     public async Task<ListingCase?> GetListingCaseByIdAsync(int id)
     {
         return await _dbContext.ListingCases
-                        .Include(x => x.Agents)
-                        .FirstOrDefaultAsync(x => x.Id == id && !x.IsDeleted);
+            .Include(x => x.Agents)
+            .FirstOrDefaultAsync(x => x.Id == id && !x.IsDeleted);
     }
 
     public async Task UpdateListingCaseAsync(ListingCase listingCase)

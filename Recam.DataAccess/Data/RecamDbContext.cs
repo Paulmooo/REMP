@@ -11,7 +11,7 @@ public class RecamDbContext : IdentityDbContext<User, Role, string>
     public DbSet<CaseContact> CaseContacts { get; set; }
     public DbSet<ListingCase> ListingCases { get; set; }
     public DbSet<MediaAsset> MediaAssets { get; set; }
-    public DbSet<PhotograpyCompany> PhotographyCompanies { get; set; }
+    public DbSet<PhotographyCompany> PhotographyCompanies { get; set; }
 
     public RecamDbContext(DbContextOptions<RecamDbContext> options) : base(options)
     {
@@ -27,10 +27,10 @@ public class RecamDbContext : IdentityDbContext<User, Role, string>
             .HasForeignKey<Agent>(agent => agent.Id)
             .OnDelete(DeleteBehavior.NoAction);
 
-        builder.Entity<PhotograpyCompany>()
+        builder.Entity<PhotographyCompany>()
             .HasOne(company => company.User)
             .WithOne(user => user.PhotographyCompany)
-            .HasForeignKey<PhotograpyCompany>(company => company.Id)
+            .HasForeignKey<PhotographyCompany>(company => company.Id)
             .OnDelete(DeleteBehavior.NoAction);
     }
 }
