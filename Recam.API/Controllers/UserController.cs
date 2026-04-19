@@ -64,5 +64,23 @@ namespace Recam.API.Controllers
                 "Agent account created successfully."
             ));
         }
+
+        [HttpGet("agent/{email}")]
+        [Authorize(Policy = "AdminPolicy")]
+        public async Task<IActionResult> GetAgentByEmail(string email)
+        {
+            var agent = await _userService.GetAgentByEmailAsync(email);
+            if (agent == null)
+            {
+                return NotFound(ApiResponse<string>.Fail("Agent not found."));
+            }
+
+            return Ok(ApiResponse<GetAgentResponseDto>.Ok(
+                agent,
+                "Agent retrieved successfully."
+            ));
+        }
     }
+
+
 }

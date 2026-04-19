@@ -109,4 +109,11 @@ public class UserRepository : IUserRepository
             throw;
         }
     }
+
+    public async Task<Agent?> GetAgentByEmailAsync(string email)
+    {
+        return await _dbContext.Agents
+            .Include(a => a.User)
+            .FirstOrDefaultAsync(a => a.User.Email == email);
+    }
 }
