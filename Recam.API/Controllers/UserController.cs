@@ -45,5 +45,24 @@ namespace Recam.API.Controllers
             await _userService.AddAgentToPhotographyCompanyAsync(dto.AgentId, companyId);
             return Ok(ApiResponse<string>.Ok(null, "Agent added to photography company successfully."));
         }
+
+        [HttpPost("agent")]
+        [Authorize(Policy = "AdminPolicy")]
+        public async Task<IActionResult> CreateAgent([FromBody] CreateAgentRequestDto dto)
+        {
+            var userId = User.FindFirstValue("uid")
+                ?? User.Claims.LastOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrWhiteSpace(userId))
+            {
+                throw new UnauthorizedAccessException("User ID claim is missing in token.");
+            }
+
+            var result = await _userService.CreateAgentAsync(userId, dto);
+
+            return Ok(ApiResponse<CreateAgentResponseDto>.Ok(
+                result,
+                "Agent account created successfully."
+            ));
+        }
     }
 }

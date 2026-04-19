@@ -1,5 +1,7 @@
-using System;
+using FluentValidation;
+using System.Security.Cryptography;
 using Recam.Repository.Interfaces;
+using Recam.Models.Entities;
 using Recam.Service.DTOs.User;
 using Recam.Service.Interfaces;
 
@@ -8,10 +10,12 @@ namespace Recam.Service.Services;
 public class UserService : IUserService
 {
     private readonly IUserRepository _userRepository;
+    private readonly IValidator<CreateAgentRequestDto> _createAgentRequestValidator;
 
-    public UserService(IUserRepository userRepository)
+    public UserService(IUserRepository userRepository, IValidator<CreateAgentRequestDto> createAgentRequestValidator)
     {
         _userRepository = userRepository;
+        _createAgentRequestValidator = createAgentRequestValidator;
     }
 
     public async Task<UserInfoDto> FindCurrentUserInfoAsync(string userId)
@@ -75,5 +79,88 @@ public class UserService : IUserService
 
         await _userRepository.AddAgentToPhotographyCompany(company, agent);
 
+    }
+
+    public async Task<CreateAgentResponseDto> CreateAgentAsync(string currentUserId, CreateAgentRequestDto dto)
+    {
+        await _createAgentRequestValidator.ValidateAndThrowAsync(dto);
+
+        var company = await _userRepository.GetPhotographyCompanyByIdAsync(currentUserId);
+        if (company == null)
+        {
+            throw new UnauthorizedAccessException("Only photography company accounts can create agent accounts.");
+        }
+
+        var temporaryPassword = GenerateTemporaryPassword();
+        var userName = dto.Email;
+
+        var user = new User
+        {
+            UserName = userName,
+            Email = dto.Email,
+            CreatedAt = DateTime.UtcNow,
+            IsDeleted = false
+        };
+
+        var agent = new Agent
+        {
+            AgentFirstName = dto.AgentFirstName,
+            AgentLastName = dto.AgentLastName,
+            AvatarUrl = dto.AvatarUrl,
+            CompanyName = company.PhotographyCompanyName
+        };
+
+        var createResult = await _userRepository.CreateAgentAsync(agent, user, temporaryPassword);
+        if (!createResult.Succeeded)
+        {
+            var errors = string.Join("; ", createResult.Errors.Select(x => x.Description));
+            throw new ArgumentException(string.IsNullOrWhiteSpace(errors) ? "Failed to create agent account." : errors);
+        }
+
+        var createdAgent = await _userRepository.GetAgentByIdAsync(user.Id);
+        if (createdAgent == null)
+        {
+            throw new InvalidOperationException("Agent account was created, but agent profile was not found.");
+        }
+
+        await _userRepository.AddAgentToPhotographyCompany(company, createdAgent);
+
+        return new CreateAgentResponseDto
+        {
+            AgentId = createdAgent.Id,
+            UserName = user.UserName,
+            Email = user.Email,
+            TemporaryPassword = temporaryPassword
+        };
+    }
+
+    private static string GenerateTemporaryPassword()
+    {
+        const string lower = "abcdefghijklmnopqrstuvwxyz";
+        const string upper = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+        const string digits = "0123456789";
+        const string special = "!@#$%^&*";
+        var allChars = lower + upper + digits + special;
+
+        var passwordChars = new[]
+        {
+            lower[RandomNumberGenerator.GetInt32(lower.Length)],
+            upper[RandomNumberGenerator.GetInt32(upper.Length)],
+            digits[RandomNumberGenerator.GetInt32(digits.Length)],
+            special[RandomNumberGenerator.GetInt32(special.Length)]
+        }.ToList();
+
+        for (int i = passwordChars.Count; i < 12; i++)
+        {
+            passwordChars.Add(allChars[RandomNumberGenerator.GetInt32(allChars.Length)]);
+        }
+
+        for (int i = passwordChars.Count - 1; i > 0; i--)
+        {
+            var swapIndex = RandomNumberGenerator.GetInt32(i + 1);
+            (passwordChars[i], passwordChars[swapIndex]) = (passwordChars[swapIndex], passwordChars[i]);
+        }
+
+        return new string(passwordChars.ToArray());
     }
 }

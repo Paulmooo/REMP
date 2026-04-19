@@ -72,4 +72,41 @@ public class UserRepository : IUserRepository
         company.Agents.Add(agent);
         await _dbContext.SaveChangesAsync();
     }
+
+    public async Task<IdentityResult> CreateAgentAsync(Agent agent, User user, string password)
+    {
+        await using var transaction = await _dbContext.Database.BeginTransactionAsync();
+        try
+        {
+            var createResult = await _userManager.CreateAsync(user, password);
+            if (!createResult.Succeeded)
+            {
+                await transaction.RollbackAsync();
+                return createResult;
+            }
+
+            var roleResult = await _userManager.AddToRoleAsync(user, "Agent");
+            if (!roleResult.Succeeded)
+            {
+                await transaction.RollbackAsync();
+                return roleResult;
+            }
+
+            var agentResult = await _dbContext.Agents.AddAsync(agent);
+            if (agentResult == null)
+            {
+                await transaction.RollbackAsync();
+                return IdentityResult.Failed(new IdentityError { Description = "Failed to create agent entity" });
+            }
+            await _dbContext.SaveChangesAsync();
+
+            await transaction.CommitAsync();
+            return IdentityResult.Success;
+        }
+        catch
+        {
+            await transaction.RollbackAsync();
+            throw;
+        }
+    }
 }
