@@ -1,4 +1,5 @@
 using System;
+using Microsoft.AspNetCore.Identity;
 using Recam.Models.Entities;
 
 namespace Recam.Repository.Interfaces;
@@ -12,4 +13,5 @@ public interface IUserRepository
     Task<Agent?> GetAgentByIdAsync(string userId);
     Task<PhotographyCompany?> GetPhotographyCompanyByIdAsync(string companyId);
     Task AddAgentToPhotographyCompany(PhotographyCompany company, Agent agent);
+    Task<IdentityResult> CreateAgentAsync(Agent agent, User user, string password);
 }
