@@ -15,7 +15,8 @@ public static class DbSeeder
         var roles = new[]
         {
             "Admin",
-            "Agent"
+            "Agent",
+            "User"
         };
 
         foreach (var roleName in roles)

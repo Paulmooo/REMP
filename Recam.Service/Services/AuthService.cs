@@ -14,7 +14,7 @@ namespace Recam.Service.Services;
 
 public class AuthService : IAuthService
 {
-    private const string DefaultUserRole = "Agent";
+    private const string DefaultUserRole = "User";
     private readonly IConfiguration _configuration;
     private readonly IAuthRepository _authRepository;
     private readonly IMapper _mapper;
