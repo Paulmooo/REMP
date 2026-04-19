@@ -14,4 +14,6 @@ public interface IUserRepository
     Task<PhotographyCompany?> GetPhotographyCompanyByIdAsync(string companyId);
     Task AddAgentToPhotographyCompany(PhotographyCompany company, Agent agent);
     Task<IdentityResult> CreateAgentAsync(Agent agent, User user, string password);
+    Task<Agent?> GetAgentByEmailAsync(string email);
+
 }

@@ -163,4 +163,23 @@ public class UserService : IUserService
 
         return new string(passwordChars.ToArray());
     }
+
+    public async Task<GetAgentResponseDto> GetAgentByEmailAsync(string email)
+    {
+        var agent = await _userRepository.GetAgentByEmailAsync(email);
+        if (agent == null)
+        {
+            throw new KeyNotFoundException("Agent not found");
+        }
+
+        return new GetAgentResponseDto
+        {
+            Id = agent.Id,
+            AgentFirstName = agent.AgentFirstName,
+            AgentLastName = agent.AgentLastName,
+            Email = agent.User.Email,
+            AvatarUrl = agent.AvatarUrl,
+            CompanyName = agent.CompanyName
+        };
+    }
 }
