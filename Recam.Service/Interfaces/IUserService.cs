@@ -1,5 +1,5 @@
 using System;
-
+using Recam.Models.Entities;
 using Recam.Service.DTOs.User;
 
 namespace Recam.Service.Interfaces;
@@ -10,4 +10,5 @@ public interface IUserService
     Task AddAgentToPhotographyCompanyAsync(string userId, string companyId);
     Task<CreateAgentResponseDto> CreateAgentAsync(string currentUserId, CreateAgentRequestDto dto);
     Task<GetAgentResponseDto> GetAgentByEmailAsync(string email);
+    Task<List<GetAgentResponseDto>> GetAgentsByCompanyIdAsync(string companyId);
 }
