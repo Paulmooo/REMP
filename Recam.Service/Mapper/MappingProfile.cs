@@ -3,6 +3,7 @@ using AutoMapper;
 using Recam.Models.Entities;
 using Recam.Service.DTOs.Auth;
 using Recam.Service.DTOs.ListingCase;
+using Recam.Service.DTOs.User;
 
 namespace Recam.Service.Mapper;
 
@@ -20,5 +21,8 @@ public class MappingProfile : Profile
 
         CreateMap<ListingCase, ListingCaseItemDto>();
         CreateMap<MediaAsset, MediaAssetDto>();
+        CreateMap<Agent, GetAgentResponseDto>()
+            .ForMember(dest => dest.Email, opt => opt.MapFrom(src => src.User.Email));
+
     }
 }

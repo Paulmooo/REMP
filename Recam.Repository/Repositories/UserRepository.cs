@@ -64,6 +64,7 @@ public class UserRepository : IUserRepository
     {
         return await _dbContext.PhotographyCompanies
             .Include(c => c.Agents)
+            .ThenInclude(a => a.User)
             .FirstOrDefaultAsync(c => c.Id == companyId);
     }
 

@@ -4,6 +4,7 @@ using Recam.Repository.Interfaces;
 using Recam.Models.Entities;
 using Recam.Service.DTOs.User;
 using Recam.Service.Interfaces;
+using AutoMapper;
 
 namespace Recam.Service.Services;
 
@@ -11,11 +12,13 @@ public class UserService : IUserService
 {
     private readonly IUserRepository _userRepository;
     private readonly IValidator<CreateAgentRequestDto> _createAgentRequestValidator;
+    private readonly IMapper _mapper;
 
-    public UserService(IUserRepository userRepository, IValidator<CreateAgentRequestDto> createAgentRequestValidator)
+    public UserService(IUserRepository userRepository, IValidator<CreateAgentRequestDto> createAgentRequestValidator, IMapper mapper)
     {
         _userRepository = userRepository;
         _createAgentRequestValidator = createAgentRequestValidator;
+        _mapper = mapper;
     }
 
     public async Task<UserInfoDto> FindCurrentUserInfoAsync(string userId)
@@ -182,4 +185,21 @@ public class UserService : IUserService
             CompanyName = agent.CompanyName
         };
     }
+
+    public async Task<List<GetAgentResponseDto>> GetAgentsByCompanyIdAsync(string companyId)
+    {
+        var company = await _userRepository.GetPhotographyCompanyByIdAsync(companyId);
+        if (company == null)
+        {
+            throw new KeyNotFoundException("Photography company not found");
+        }
+
+        var agents = company.Agents
+            .OrderBy(a => a.AgentFirstName)
+            .ThenBy(a => a.AgentLastName)
+            .ToList();
+
+        return _mapper.Map<List<GetAgentResponseDto>>(agents);
+    }
+
 }
