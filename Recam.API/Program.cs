@@ -43,6 +43,8 @@ builder.Services.AddAuthorization(options => {
     options.AddPolicy("AdminPolicy",
     policy => policy.RequireClaim(ClaimTypes.Role, "Admin"));
     options.AddPolicy("UserPolicy",
+    policy => policy.RequireClaim(ClaimTypes.Role, "User"));
+    options.AddPolicy("AgentPolicy",
     policy => policy.RequireClaim(ClaimTypes.Role, "Agent"));
 });
 
