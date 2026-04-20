@@ -11,4 +11,5 @@ public interface IUserService
     Task<CreateAgentResponseDto> CreateAgentAsync(string currentUserId, CreateAgentRequestDto dto);
     Task<GetAgentResponseDto> GetAgentByEmailAsync(string email);
     Task<List<GetAgentResponseDto>> GetAgentsByCompanyIdAsync(string companyId);
+    Task UpdatePasswordAsync(string userId, UpdatePasswordRequestDto dto);
 }

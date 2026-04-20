@@ -12,12 +12,18 @@ public class UserService : IUserService
 {
     private readonly IUserRepository _userRepository;
     private readonly IValidator<CreateAgentRequestDto> _createAgentRequestValidator;
+    private readonly IValidator<UpdatePasswordRequestDto> _updatePasswordRequestValidator;
     private readonly IMapper _mapper;
 
-    public UserService(IUserRepository userRepository, IValidator<CreateAgentRequestDto> createAgentRequestValidator, IMapper mapper)
+    public UserService(
+        IUserRepository userRepository,
+        IValidator<CreateAgentRequestDto> createAgentRequestValidator,
+        IValidator<UpdatePasswordRequestDto> updatePasswordRequestValidator,
+        IMapper mapper)
     {
         _userRepository = userRepository;
         _createAgentRequestValidator = createAgentRequestValidator;
+        _updatePasswordRequestValidator = updatePasswordRequestValidator;
         _mapper = mapper;
     }
 
@@ -200,6 +206,24 @@ public class UserService : IUserService
             .ToList();
 
         return _mapper.Map<List<GetAgentResponseDto>>(agents);
+    }
+
+    public async Task UpdatePasswordAsync(string userId, UpdatePasswordRequestDto dto)
+    {
+        await _updatePasswordRequestValidator.ValidateAndThrowAsync(dto);
+
+        var user = await _userRepository.GetUserByIdAsync(userId);
+        if (user == null)
+        {
+            throw new KeyNotFoundException("User not found");
+        }
+
+        var result = await _userRepository.ChangePasswordAsync(user, dto.CurrentPassword, dto.NewPassword);
+        if (!result.Succeeded)
+        {
+            var errors = string.Join("; ", result.Errors.Select(x => x.Description));
+            throw new ArgumentException(string.IsNullOrWhiteSpace(errors) ? "Failed to update password." : errors);
+        }
     }
 
 }
