@@ -15,5 +15,5 @@ public interface IUserRepository
     Task AddAgentToPhotographyCompany(PhotographyCompany company, Agent agent);
     Task<IdentityResult> CreateAgentAsync(Agent agent, User user, string password);
     Task<Agent?> GetAgentByEmailAsync(string email);
-
+    Task<IdentityResult> ChangePasswordAsync(User user, string currentPassword, string newPassword);
 }

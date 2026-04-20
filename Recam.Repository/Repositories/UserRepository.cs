@@ -117,4 +117,9 @@ public class UserRepository : IUserRepository
             .Include(a => a.User)
             .FirstOrDefaultAsync(a => a.User.Email == email);
     }
+
+    public async Task<IdentityResult> ChangePasswordAsync(User user, string currentPassword, string newPassword)
+    {
+        return await _userManager.ChangePasswordAsync(user, currentPassword, newPassword);
+    }
 }

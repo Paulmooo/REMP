@@ -1,6 +1,5 @@
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Recam.Common.Extensions;
 using Recam.Service.DTOs.User;
@@ -97,7 +96,22 @@ namespace Recam.API.Controllers
                 agents,
                 "Agents retrieved successfully."
             ));
+        }
+
+        [HttpPut("password")]
+        [Authorize]
+        public async Task<IActionResult> UpdatePassword([FromBody] UpdatePasswordRequestDto dto)
+        {
+            var userId = User.FindFirstValue("uid")
+                ?? User.Claims.LastOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrWhiteSpace(userId))
+            {
+                throw new UnauthorizedAccessException("User ID claim is missing in token.");
+            }
+
+            await _userService.UpdatePasswordAsync(userId, dto);
+
+            return Ok(ApiResponse<string>.Ok(null, "Password updated successfully."));
+        }
     }
-
-
 }
