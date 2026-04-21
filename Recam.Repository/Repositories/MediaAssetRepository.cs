@@ -22,6 +22,12 @@ public class MediaAssetRepository : IMediaAssetRepository
             .FirstOrDefaultAsync(x => x.Id == id);
     }
 
+    public async Task AddMediaAssetsAsync(List<MediaAsset> mediaAssets)
+    {
+        await _dbContext.MediaAssets.AddRangeAsync(mediaAssets);
+        await _dbContext.SaveChangesAsync();
+    }
+
     public async Task DeleteMediaAssetAsync(MediaAsset mediaAsset)
     {
         _dbContext.MediaAssets.Remove(mediaAsset);
