@@ -34,7 +34,7 @@ namespace Recam.DataAccess.Migrations
 
                     b.HasIndex("ListingCasesId");
 
-                    b.ToTable("AgentListingCase");
+                    b.ToTable("AgentListingCase", (string)null);
                 });
 
             modelBuilder.Entity("AgentPhotograpyCompany", b =>
@@ -49,7 +49,7 @@ namespace Recam.DataAccess.Migrations
 
                     b.HasIndex("PhotographyCompaniesId");
 
-                    b.ToTable("AgentPhotograpyCompany");
+                    b.ToTable("AgentPhotograpyCompany", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -177,7 +177,7 @@ namespace Recam.DataAccess.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Agents");
+                    b.ToTable("Agents", (string)null);
                 });
 
             modelBuilder.Entity("Recam.Models.Entities.CaseContact", b =>
@@ -213,7 +213,7 @@ namespace Recam.DataAccess.Migrations
 
                     b.HasIndex("ListingCaseId");
 
-                    b.ToTable("CaseContacts");
+                    b.ToTable("CaseContacts", (string)null);
                 });
 
             modelBuilder.Entity("Recam.Models.Entities.ListingCase", b =>
@@ -285,7 +285,7 @@ namespace Recam.DataAccess.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("ListingCases");
+                    b.ToTable("ListingCases", (string)null);
                 });
 
             modelBuilder.Entity("Recam.Models.Entities.MediaAsset", b =>
@@ -326,7 +326,7 @@ namespace Recam.DataAccess.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("MediaAssets");
+                    b.ToTable("MediaAssets", (string)null);
                 });
 
             modelBuilder.Entity("Recam.Models.Entities.PhotograpyCompany", b =>
@@ -339,7 +339,7 @@ namespace Recam.DataAccess.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("PhotographyCompanies");
+                    b.ToTable("PhotographyCompanies", (string)null);
                 });
 
             modelBuilder.Entity("Recam.Models.Entities.Role", b =>
