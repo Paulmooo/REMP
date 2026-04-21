@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using System.Text;
+using Azure.Storage.Blobs;
 using FluentValidation;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
@@ -27,6 +28,9 @@ builder.Services.AddScoped<IListingCaseRepository, ListingCaseRepository>();
 builder.Services.AddScoped<IListingCaseService, ListingCaseService>();
 builder.Services.AddScoped<IMediaAssetRepository, MediaAssetRepository>();
 builder.Services.AddScoped<IMediaAssetService, MediaAssetService>();
+builder.Services.AddSingleton(x => new BlobServiceClient(
+    builder.Configuration.GetSection("AzureBlobStorage")["ConnectionString"])
+);
 builder.Services.AddAutoMapper(_ => { }, typeof(MappingProfile).Assembly);
 builder.Services.AddValidatorsFromAssemblyContaining<CreateListingCaseRequestValidator>();
 
