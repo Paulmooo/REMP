@@ -32,5 +32,18 @@ public class RecamDbContext : IdentityDbContext<User, Role, string>
             .WithOne(user => user.PhotographyCompany)
             .HasForeignKey<PhotographyCompany>(company => company.Id)
             .OnDelete(DeleteBehavior.NoAction);
+
+        builder.Entity<Agent>()
+            .HasMany(agent => agent.PhotographyCompanies)
+            .WithMany(company => company.Agents)
+            .UsingEntity(joinEntity => joinEntity.ToTable("AgentPhotograpyCompany"));
+
+        builder.Entity<ListingCase>()
+            .Property(listingCase => listingCase.Latitude)
+            .HasColumnType("decimal(18,2)");
+
+        builder.Entity<ListingCase>()
+            .Property(listingCase => listingCase.Longitude)
+            .HasColumnType("decimal(18,2)");
     }
 }
