@@ -28,6 +28,8 @@ builder.Services.AddScoped<IListingCaseRepository, ListingCaseRepository>();
 builder.Services.AddScoped<IListingCaseService, ListingCaseService>();
 builder.Services.AddScoped<IMediaAssetRepository, MediaAssetRepository>();
 builder.Services.AddScoped<IMediaAssetService, MediaAssetService>();
+builder.Services.AddScoped<IBlobStorageService, BlobStorageService>();
+builder.Services.AddMemoryCache();
 builder.Services.AddSingleton(x => new BlobServiceClient(
     builder.Configuration.GetSection("AzureBlobStorage")["ConnectionString"])
 );

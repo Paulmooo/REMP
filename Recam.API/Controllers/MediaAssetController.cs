@@ -2,7 +2,10 @@ using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+
 using Recam.Common.Extensions;
+using Recam.Models.Enums;
+using Recam.Service.DTOs.ListingCase;
 using Recam.Service.Interfaces;
 
 namespace Recam.API.Controllers
@@ -16,6 +19,26 @@ namespace Recam.API.Controllers
         public MediaAssetController(IMediaAssetService mediaAssetService)
         {
             _mediaAssetService = mediaAssetService;
+        }
+
+        [HttpPost("media/upload")]
+        [Authorize(Policy = "AdminPolicy")]
+        public async Task<IActionResult> UploadMediaAssets(
+            [FromForm] List<IFormFile> files,
+            [FromForm] MediaType type,
+            [FromForm] int listingCaseId
+            )
+        {
+            var userId = User.FindFirstValue("uid")
+                ?? User.Claims.LastOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrWhiteSpace(userId))
+            {
+                throw new UnauthorizedAccessException("User ID claim is missing in token.");
+            }
+
+            var mediaAssets = await _mediaAssetService.UploadMediaAssetsAsync(files, type, listingCaseId, userId);
+
+            return Ok(ApiResponse<List<MediaAssetDto>>.Ok(mediaAssets, "Media assets uploaded successfully."));
         }
 
         [HttpDelete("media/{id}")]
