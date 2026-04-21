@@ -18,6 +18,7 @@
     <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="10.0.5" />
   </ItemGroup>
 
+
   <ItemGroup>
     <ProjectReference Include="../Recam.Common/Recam.Common.csproj" />
     <ProjectReference Include="../Recam.DataAccess/Recam.DataAccess.csproj" />
