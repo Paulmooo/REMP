@@ -5,4 +5,5 @@
   <Project Path="Recam.Models/Recam.Models.csproj" />
   <Project Path="Recam.Repository/Recam.Repository.csproj" />
   <Project Path="Recam.Service/Recam.Service.csproj" />
+  <Project Path="Recam.Tests/Recam.Tests.csproj" />
 </Solution>
