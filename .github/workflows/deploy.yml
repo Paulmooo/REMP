@@ -1,0 +1,41 @@
+name: Build & Deploy to Azure App Service (.NET 10)
+
+on:
+  push:
+    branches:
+      - main
+
+env:
+  DOTNET_VERSION: "10.0"
+  PUBLISH_DIR: "publish"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 10 SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Restore dependencies
+        run: dotnet restore Remp.slnx
+
+      - name: Build
+        run: dotnet build Remp.slnx --configuration Release --no-restore
+
+      - name: Run unit tests
+        run: dotnet test Remp.Tests/Remp.Tests.csproj --configuration Release --no-build --collect:"XPlat Code Coverage"
+
+      - name: Publish
+        run: dotnet publish --configuration Release --no-build --output ${{ env.PUBLISH_DIR }}
+
+      - name: Deploy to Azure Web App
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: "paulapi"
+          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
+          package: ${{ env.PUBLISH_DIR }}

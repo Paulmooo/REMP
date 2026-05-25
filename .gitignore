@@ -1,0 +1,59 @@
+# Custom ignores in this repo
+/docs/
+/.vscode/
+
+# Build results
+[Bb]in/
+[Oo]bj/
+out/
+
+# Rider / VS / VS Code user files
+.vs/
+*.user
+*.rsuser
+*.suo
+*.userosscache
+*.sln.docstates
+*.VC.db
+*.VC.VC.opendb
+
+# Test results
+[Tt]est[Rr]esult*/
+[Bb]uild[Ll]og.*
+*.trx
+*.coverage
+*.coveragexml
+
+# NuGet
+*.nupkg
+*.snupkg
+**/[Pp]ackages/*
+!**/[Pp]ackages/build/
+!**/[Pp]ackages/repositories.config
+*.nuget.props
+*.nuget.targets
+
+# Dotnet local tools and artifacts
+.dotnet/
+artifacts/
+
+# ASP.NET Core local settings (may contain secrets)
+**/appsettings.Development.json
+**/appsettings.Local.json
+**/appsettings.*.local.json
+
+# User secrets and local environment
+secrets.json
+.env
+.env.*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+AGENT.md
+
+bin/
+obj/
+**/publish/
+
