@@ -22,13 +22,13 @@ jobs:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
       - name: Restore dependencies
-        run: dotnet restore Recam.slnx
+        run: dotnet restore Remp.slnx
 
       - name: Build
-        run: dotnet build Recam.slnx --configuration Release --no-restore
+        run: dotnet build Remp.slnx --configuration Release --no-restore
 
       - name: Run unit tests
-        run: dotnet test Recam.Tests/Recam.Tests.csproj --configuration Release --no-build --collect:"XPlat Code Coverage"
+        run: dotnet test Remp.Tests/Remp.Tests.csproj --configuration Release --no-build --collect:"XPlat Code Coverage"
 
       - name: Publish
         run: dotnet publish --configuration Release --no-build --output ${{ env.PUBLISH_DIR }}
