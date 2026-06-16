@@ -38,6 +38,7 @@ out/
 artifacts/
 
 # ASP.NET Core local settings (may contain secrets)
+**/appsettings.json
 **/appsettings.Development.json
 **/appsettings.Local.json
 **/appsettings.*.local.json
@@ -56,4 +57,3 @@ AGENT.md
 bin/
 obj/
 **/publish/
-
