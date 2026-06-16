@@ -1,0 +1,9 @@
+<Solution>
+  <Project Path="Remp.API/Remp.API.csproj" />
+  <Project Path="Remp.Common/Remp.Common.csproj" />
+  <Project Path="Remp.DataAccess/Remp.DataAccess.csproj" />
+  <Project Path="Remp.Models/Remp.Models.csproj" />
+  <Project Path="Remp.Repository/Remp.Repository.csproj" />
+  <Project Path="Remp.Service/Remp.Service.csproj" />
+  <Project Path="Remp.Tests/Remp.Tests.csproj" />
+</Solution>
