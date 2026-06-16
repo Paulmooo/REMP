@@ -1,6 +1,6 @@
-# Recam Real Estate Media Delivery Platform
+# Remp Real Estate Media Delivery Platform
 
-Recam is a backend platform for managing real-estate media delivery workflows between photography companies and real-estate agents.
+Remp is a backend platform for managing real-estate media delivery workflows between photography companies and real-estate agents.
 
 Photography companies can create property listing cases, upload media assets, assign agents, and manage delivery status. Agents can access assigned listings, review property information, and work with listing media for final property presentation workflows.
 

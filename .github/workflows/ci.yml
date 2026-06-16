@@ -24,17 +24,17 @@ jobs:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
       - name: Restore dependencies
-        run: dotnet restore Recam.slnx
+        run: dotnet restore Remp.slnx
 
       - name: Build
-        run: dotnet build Recam.slnx --configuration Release --no-restore
+        run: dotnet build Remp.slnx --configuration Release --no-restore
 
       - name: Run unit tests with coverage
-        run: dotnet test Recam.Tests/Recam.Tests.csproj --configuration Release --no-build --collect:"XPlat Code Coverage" --logger "trx;LogFileName=test-results.trx"
+        run: dotnet test Remp.Tests/Remp.Tests.csproj --configuration Release --no-build --collect:"XPlat Code Coverage" --logger "trx;LogFileName=test-results.trx"
 
       - name: Upload test results
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: test-results
-          path: Recam.Tests/TestResults
+          path: Remp.Tests/TestResults
