@@ -32,4 +32,12 @@ public class BlobStorageService : IBlobStorageService
 
         return blobClient.Uri.ToString();
     }
+
+    public async Task DeleteIfExistsAsync(string fileName)
+    {
+        var containerClient = _blobServiceClient.GetBlobContainerClient(_containerName);
+        var blobClient = containerClient.GetBlobClient(fileName);
+
+        await blobClient.DeleteIfExistsAsync();
+    }
 }

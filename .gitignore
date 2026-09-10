@@ -52,7 +52,7 @@ secrets.json
 .DS_Store
 Thumbs.db
 
-AGENT.md
+AGENTS.md
 
 bin/
 obj/

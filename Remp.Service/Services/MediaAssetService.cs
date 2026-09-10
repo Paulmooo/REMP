@@ -1,5 +1,6 @@
 using AutoMapper;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Logging;
 using Remp.Models.Entities;
 using Remp.Models.Enums;
 using Remp.Repository.Interfaces;
@@ -14,17 +15,20 @@ public class MediaAssetService : IMediaAssetService
     private readonly IListingCaseRepository _listingCaseRepository;
     private readonly IBlobStorageService _blobStorageService;
     private readonly IMapper _mapper;
+    private readonly ILogger<MediaAssetService> _logger;
 
     public MediaAssetService(
         IMediaAssetRepository mediaAssetRepository,
         IListingCaseRepository listingCaseRepository,
         IBlobStorageService blobStorageService,
-        IMapper mapper)
+        IMapper mapper,
+        ILogger<MediaAssetService> logger)
     {
         _mediaAssetRepository = mediaAssetRepository;
         _listingCaseRepository = listingCaseRepository;
         _blobStorageService = blobStorageService;
         _mapper = mapper;
+        _logger = logger;
     }
 
     public async Task<List<MediaAssetDto>> UploadMediaAssetsAsync(List<IFormFile> files, MediaType type, int listingCaseId, string userId)
@@ -56,32 +60,56 @@ public class MediaAssetService : IMediaAssetService
         }
 
         var mediaAssets = new List<MediaAsset>();
+        var attemptedBlobNames = new List<string>();
 
-        foreach (var file in files)
+        try
         {
-            if (file.Length <= 0)
+            foreach (var file in files)
             {
-                throw new ArgumentException("Uploaded file cannot be empty.");
+                if (file.Length <= 0)
+                {
+                    throw new ArgumentException("Uploaded file cannot be empty.");
+                }
+
+                await using var stream = file.OpenReadStream();
+                var fileName = $"{Guid.NewGuid()}{Path.GetExtension(file.FileName)}";
+                attemptedBlobNames.Add(fileName);
+                var mediaUrl = await _blobStorageService.UploadAsync(stream, fileName);
+
+                mediaAssets.Add(new MediaAsset
+                {
+                    MediaType = type,
+                    MediaUrl = mediaUrl,
+                    UploadedAt = DateTime.UtcNow,
+                    IsSelected = false,
+                    IsHero = false,
+                    IsDeleted = false,
+                    ListingCaseId = listingCaseId,
+                    UserId = userId
+                });
             }
 
-            await using var stream = file.OpenReadStream();
-            var fileName = $"{Guid.NewGuid()}{Path.GetExtension(file.FileName)}";
-            var mediaUrl = await _blobStorageService.UploadAsync(stream, fileName);
-
-            mediaAssets.Add(new MediaAsset
-            {
-                MediaType = type,
-                MediaUrl = mediaUrl,
-                UploadedAt = DateTime.UtcNow,
-                IsSelected = false,
-                IsHero = false,
-                IsDeleted = false,
-                ListingCaseId = listingCaseId,
-                UserId = userId
-            });
+            await _mediaAssetRepository.AddMediaAssetsAsync(mediaAssets);
         }
+        catch
+        {
+            foreach (var blobName in attemptedBlobNames)
+            {
+                try
+                {
+                    await _blobStorageService.DeleteIfExistsAsync(blobName);
+                }
+                catch (Exception cleanupException)
+                {
+                    _logger.LogError(
+                        cleanupException,
+                        "Failed to delete blob {BlobName} while cleaning up a failed media upload.",
+                        blobName);
+                }
+            }
 
-        await _mediaAssetRepository.AddMediaAssetsAsync(mediaAssets);
+            throw;
+        }
 
         return _mapper.Map<List<MediaAssetDto>>(mediaAssets);
     }
