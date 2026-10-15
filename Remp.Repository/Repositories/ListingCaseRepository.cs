@@ -15,6 +15,32 @@ public class ListingCaseRepository : IListingCaseRepository
         _dbContext = dbContext;
     }
 
+    public Task<bool> IsActiveCompanyAdminAsync(string userId) =>
+        _dbContext.PhotographyCompanies.AnyAsync(c => c.Id == userId && !c.User.IsDeleted &&
+            _dbContext.UserRoles.Any(ur => ur.UserId == userId &&
+                _dbContext.Roles.Any(r => r.Id == ur.RoleId && r.NormalizedName == "ADMIN")));
+
+    public Task<Agent?> GetActiveAgentAsync(string agentId) =>
+        _dbContext.Agents.Include(a => a.PhotographyCompanies).FirstOrDefaultAsync(a =>
+            a.Id == agentId && !a.User.IsDeleted &&
+            _dbContext.UserRoles.Any(ur => ur.UserId == a.Id &&
+                _dbContext.Roles.Any(r => r.Id == ur.RoleId && r.NormalizedName == "AGENT")));
+
+    public async Task SetAgentAssignmentAsync(int listingCaseId, string agentId, bool assigned)
+    {
+        // Serialize read/modify of the existing EF skip-navigation join; no duplicate model/schema.
+        await using var transaction = await _dbContext.Database.BeginTransactionAsync(System.Data.IsolationLevel.Serializable);
+        var listing = await _dbContext.ListingCases.Include(x => x.Agents)
+            .SingleAsync(x => x.Id == listingCaseId && !x.IsDeleted);
+        var existing = listing.Agents.FirstOrDefault(a => a.Id == agentId);
+        if (assigned && existing == null)
+            listing.Agents.Add(await _dbContext.Agents.SingleAsync(a => a.Id == agentId));
+        else if (!assigned && existing != null)
+            listing.Agents.Remove(existing);
+        await _dbContext.SaveChangesAsync();
+        await transaction.CommitAsync();
+    }
+
     public async Task<bool> UserExistsAsync(string userId)
     {
         return await _dbContext.Users.AnyAsync(u => u.Id == userId);

@@ -5,6 +5,9 @@ namespace Remp.Repository.Interfaces;
 
 public interface IListingCaseRepository
 {
+    Task<bool> IsActiveCompanyAdminAsync(string userId);
+    Task<Agent?> GetActiveAgentAsync(string agentId);
+    Task SetAgentAssignmentAsync(int listingCaseId, string agentId, bool assigned);
     Task<bool> UserExistsAsync(string userId);
     Task<int> CreateListingCaseAsync(ListingCase listingCase);
     Task<ListingCase?> GetListingCaseByIdAsync(int id);

@@ -29,6 +29,33 @@ public class ListingCaseService : IListingCaseService
         _updateValidator = updateValidator;
     }
 
+    public Task<ListingAgentAssignmentDto> AssignAgentAsync(int id, string agentId, string userId) =>
+        SetAssignmentAsync(id, agentId, userId, true);
+
+    public Task<ListingAgentAssignmentDto> UnassignAgentAsync(int id, string agentId, string userId) =>
+        SetAssignmentAsync(id, agentId, userId, false);
+
+    private async Task<ListingAgentAssignmentDto> SetAssignmentAsync(int id, string agentId, string userId, bool assigned)
+    {
+        if (string.IsNullOrWhiteSpace(userId)) throw new UnauthorizedAccessException("User ID claim is missing in token.");
+        if (id <= 0 || string.IsNullOrWhiteSpace(agentId)) throw new ArgumentException("Listing ID and Agent ID are required.");
+        if (!await _listingCaseRepository.IsActiveCompanyAdminAsync(userId))
+            throw new ForbiddenException("Only an active photography company administrator can manage assignments.");
+        var listing = await _listingCaseRepository.GetListingCaseByIdAsync(id)
+            ?? throw new KeyNotFoundException("Listing case not found.");
+        if (listing.UserId != userId) throw new ForbiddenException("Only the listing owner can manage assignments.");
+        if (assigned)
+        {
+            var agent = await _listingCaseRepository.GetActiveAgentAsync(agentId)
+                ?? throw new KeyNotFoundException("Active Agent not found.");
+            if (!agent.PhotographyCompanies.Any(c => c.Id == userId))
+                throw new ForbiddenException("Agent must belong to the listing's photography company.");
+        }
+        // Removal also cleans up stale assignments after an Agent is deleted or leaves a company.
+        await _listingCaseRepository.SetAgentAssignmentAsync(id, agentId, assigned);
+        return new ListingAgentAssignmentDto { ListingCaseId = id, AgentId = agentId, Assigned = assigned };
+    }
+
     public async Task<CreateListingCaseResponseDto> CreateListingCaseAsync(CreateListingCaseRequestDto dto, string userId)
     {
         var validationResult = await _createValidator.ValidateAsync(dto);

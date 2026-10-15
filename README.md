@@ -200,3 +200,18 @@ dotnet test Remp.Tests/Remp.Tests.csproj
 - Activity/history tracking with NoSQL storage
 - Swagger/OpenAPI documentation
 - Docker and CI/CD deployment automation
+
+## Listing Agent assignment (N01)
+
+An authenticated Admin with an active photography-company profile can manage Agents on a Listing owned by that company:
+
+- `PUT /api/ListingCase/listings/{id}/agents/{agentId}` assigns an active Agent already belonging to that company.
+- `DELETE /api/ListingCase/listings/{id}/agents/{agentId}` removes only that relationship, including stale assignments.
+
+Neither endpoint takes a request body. Both return HTTP 200 with `data={listingCaseId,agentId,assigned}`; repeating either operation is idempotent. Removing an absent relationship or unknown Agent ID succeeds after validating the Listing and its owner. Invalid arguments return 400, missing authentication 401, unauthorized actors/cross-company operations 403, and missing Listing or assignment target 404.
+
+Assignment grants Agent access to the Listing detail/media, list and current-user listing IDs. Removal revokes that access on the next request without refreshing the JWT; existing detail/media endpoints return 401 for an unassigned Agent. Other Agent and Listing relationships remain unchanged. Persistence reuses AgentListingCase, without schema changes.
+
+Development OpenAPI JSON is available at `/openapi/v1.json` (no Swagger UI). There is no demo account initializer or automatic password setup. Public registration remains disabled; ordinary company-created Agents remain passwordless with `requiresInvitation=true`.
+
+Tests use isolated SQLite records and a standalone local OpenAPI host, without starting application initialization or connecting to SQL Server. SQL Server concurrency and the complete JWT HTTP business flow have not been verified. `docs/` remains entirely Git ignored.

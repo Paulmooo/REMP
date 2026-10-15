@@ -20,6 +20,7 @@ public class MappingProfile : Profile
             .ForMember(dest => dest.ListingStatus, opt => opt.Ignore());
 
         CreateMap<ListingCase, ListingCaseItemDto>();
+        CreateMap<Agent, AgentBriefDto>();
         CreateMap<MediaAsset, MediaAssetDto>();
         CreateMap<Agent, GetAgentResponseDto>()
             .ForMember(dest => dest.Email, opt => opt.MapFrom(src => src.User.Email));
