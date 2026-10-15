@@ -1,3 +1,5 @@
+using Microsoft.Data.SqlClient;
+using Remp.Common.Exceptions;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Remp.DataAccess.Data;
@@ -71,10 +73,18 @@ public class UserRepository : IUserRepository
     public async Task AddAgentToPhotographyCompany(PhotographyCompany company, Agent agent)
     {
         company.Agents.Add(agent);
-        await _dbContext.SaveChangesAsync();
+        try
+        {
+            await _dbContext.SaveChangesAsync();
+        }
+        catch (DbUpdateException ex) when (ex.InnerException is SqlException { Number: 2601 or 2627 })
+        {
+            // The join table's composite key also protects concurrent duplicate requests.
+            throw new ConflictException("Agent is already part of the photography company");
+        }
     }
 
-    public async Task<IdentityResult> CreateAgentAsync(Agent agent, User user, string password)
+    public async Task<IdentityResult> CreateAgentAsync(Agent agent, User user, string password, PhotographyCompany company)
     {
         await using var transaction = await _dbContext.Database.BeginTransactionAsync();
         try
@@ -83,6 +93,7 @@ public class UserRepository : IUserRepository
             if (!createResult.Succeeded)
             {
                 await transaction.RollbackAsync();
+                _dbContext.ChangeTracker.Clear();
                 return createResult;
             }
 
@@ -90,15 +101,15 @@ public class UserRepository : IUserRepository
             if (!roleResult.Succeeded)
             {
                 await transaction.RollbackAsync();
+                _dbContext.ChangeTracker.Clear();
                 return roleResult;
             }
 
-            var agentResult = await _dbContext.Agents.AddAsync(agent);
-            if (agentResult == null)
-            {
-                await transaction.RollbackAsync();
-                return IdentityResult.Failed(new IdentityError { Description = "Failed to create agent entity" });
-            }
+            // Agent.Id is both its primary key and its FK to the Identity user.
+            agent.Id = user.Id;
+            agent.User = user;
+            _dbContext.Agents.Add(agent);
+            company.Agents.Add(agent);
             await _dbContext.SaveChangesAsync();
 
             await transaction.CommitAsync();
@@ -107,6 +118,7 @@ public class UserRepository : IUserRepository
         catch
         {
             await transaction.RollbackAsync();
+            _dbContext.ChangeTracker.Clear();
             throw;
         }
     }

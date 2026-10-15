@@ -1,3 +1,4 @@
+using Remp.Common.Exceptions;
 using AutoMapper;
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
@@ -77,6 +78,11 @@ public class ListingCaseService : IListingCaseService
         if (existingCase == null)
         {
             throw new KeyNotFoundException($"Listing case with ID {id} not found.");
+        }
+
+        if (existingCase.UserId != userId)
+        {
+            throw new ForbiddenException("Users can only update their own listing cases.");
         }
 
         if (existingCase.IsDeleted)
