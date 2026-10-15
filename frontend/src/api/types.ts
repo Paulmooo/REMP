@@ -24,6 +24,10 @@ export interface Agent {
   avatarUrl: string;
   companyName: string;
 }
+// Company candidates include email; Listing AgentBriefDto does not.
+export interface CompanyAgent extends Agent {
+  email: string;
+}
 export interface Contact {
   contactId: number;
   firstName: string;

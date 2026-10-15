@@ -1,0 +1,35 @@
+import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { afterEach, expect, it, vi } from "vitest";
+import { AgentAssignment } from "./AgentAssignment";
+import { request } from "../api/client";
+vi.mock("../api/client", async original => ({ ...await original<typeof import("../api/client")>(), request: vi.fn() }));
+afterEach(() => { cleanup(); vi.clearAllMocks(); });
+const agent = { id: "agent /?#", agentFirstName: "Alex", agentLastName: "Chen", email: "alex@example.test", companyName: "Example", avatarUrl: "" };
+it("encodes agent ID, locks synchronous duplicate writes and waits for confirmation before refresh", async () => {
+  let resolveWrite!: (value: unknown) => void;
+  vi.mocked(request).mockImplementation(async (url) => url === "/User/agents" ? [agent] : new Promise(resolve => { resolveWrite = resolve; }));
+  const refresh = vi.fn().mockResolvedValue(undefined);
+  render(<AgentAssignment listingId="42" agents={[]} refresh={refresh} />);
+  fireEvent.click(screen.getByRole("button", { name: "Manage agents" }));
+  const assign = await screen.findByRole("button", { name: "Assign Alex Chen" });
+  fireEvent.click(assign); fireEvent.click(assign);
+  expect(refresh).not.toHaveBeenCalled();
+  expect(request).toHaveBeenCalledTimes(2);
+  expect(request).toHaveBeenLastCalledWith("/ListingCase/listings/42/agents/agent%20%2F%3F%23", expect.objectContaining({ method: "PUT" }));
+  await act(async () => resolveWrite({ assigned: true }));
+  expect(refresh).toHaveBeenCalledOnce();
+});
+it("unmount aborts a confirmed write's pending GET and suppresses late success", async () => {
+  vi.mocked(request).mockResolvedValue([agent]);
+  let finishRead!: () => void;
+  let readSignal!: AbortSignal;
+  const refresh = vi.fn((signal: AbortSignal) => { readSignal = signal; return new Promise<void>(resolve => { finishRead = resolve; }); });
+  const view = render(<AgentAssignment listingId="42" agents={[]} refresh={refresh} />);
+  fireEvent.click(screen.getByRole("button", { name: "Manage agents" }));
+  fireEvent.click(await screen.findByRole("button", { name: "Assign Alex Chen" }));
+  await screen.findByText("Change saved. Refreshing listing…");
+  expect(readSignal.aborted).toBe(false);
+  view.unmount(); expect(readSignal.aborted).toBe(true);
+  await act(async () => finishRead());
+  expect(screen.queryByText("Assignments saved")).toBeNull();
+});
