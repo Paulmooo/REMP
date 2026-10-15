@@ -16,6 +16,12 @@ using Remp.Service.Mapper;
 using Remp.Service.Services;
 using Remp.Service.Validators;
 
+if (args.Length > 0 && args[0] == "migrate-users")
+{
+    await AccountMigrationCommand.RunAsync(args[1..]);
+    return;
+}
+
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
@@ -41,7 +47,7 @@ builder.Services.AddSingleton<Remp.API.Middlewares.Exceptions.ExceptionHandlingS
 builder.Services.AddDbContext<RempDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("RempDb")));
 
-builder.Services.AddIdentity<User, Role>()
+builder.Services.AddIdentity<User, Role>(options => options.User.RequireUniqueEmail = true)
     .AddEntityFrameworkStores<RempDbContext>()
     .AddDefaultTokenProviders();
 

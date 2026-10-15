@@ -22,6 +22,12 @@ public class AuthRepository : IAuthRepository
         return await _userManager.FindByNameAsync(username);
     }
 
+    public Task<User?> FindByEmailAsync(string email) => _userManager.FindByEmailAsync(email);
+
+    public async Task<bool> HasRequiredProfilesAsync(User user, List<string> roles) =>
+        (!roles.Contains("Agent") || await _dbContext.Agents.AnyAsync(a => a.Id == user.Id)) &&
+        (!roles.Contains("Admin") || await _dbContext.PhotographyCompanies.AnyAsync(c => c.Id == user.Id));
+
     public async Task<IdentityResult> RegisterWithRoleAsync(User user, string password, string role)
     {
         await using var transaction = await _dbContext.Database.BeginTransactionAsync();
@@ -32,6 +38,7 @@ public class AuthRepository : IAuthRepository
             if (!createResult.Succeeded)
             {
                 await transaction.RollbackAsync();
+                _dbContext.ChangeTracker.Clear();
                 return createResult;
             }
 
@@ -39,6 +46,7 @@ public class AuthRepository : IAuthRepository
             if (!roleResult.Succeeded)
             {
                 await transaction.RollbackAsync();
+                _dbContext.ChangeTracker.Clear();
                 return roleResult;
             }
 
@@ -48,6 +56,7 @@ public class AuthRepository : IAuthRepository
         catch
         {
             await transaction.RollbackAsync();
+            _dbContext.ChangeTracker.Clear();
             throw;
         }
     }

@@ -6,6 +6,7 @@ using AutoMapper;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using Remp.Models.Entities;
+using Remp.Common.Exceptions;
 using Remp.Repository.Interfaces;
 using Remp.Service.DTOs.Auth;
 using Remp.Service.Interfaces;
@@ -14,7 +15,6 @@ namespace Remp.Service.Services;
 
 public class AuthService : IAuthService
 {
-    private const string DefaultUserRole = "User";
     private readonly IConfiguration _configuration;
     private readonly IAuthRepository _authRepository;
     private readonly IMapper _mapper;
@@ -26,40 +26,16 @@ public class AuthService : IAuthService
         _mapper = mapper;
     }
 
-    public async Task<RegisterResponseDto> RegisterAsync(RegisterRequestDto dto)
-    {
-        var existing = await _authRepository.FindByUsernameAsync(dto.UserName);
-        if (existing != null)
-        {
-            throw new ArgumentException("UserName already exists");
-        }
-
-        var newUser = _mapper.Map<User>(dto);
-        
-        var result = await _authRepository.RegisterWithRoleAsync(newUser, dto.Password, DefaultUserRole);
-        if (!result.Succeeded)
-        {
-            throw new ArgumentException("Failed to register user");
-        }
-
-        var roles = await _authRepository.GetRolesAsync(newUser);
-        var token = GenerateJwtToken(newUser, roles.ToList());
-
-        return new RegisterResponseDto
-        {
-            Token = token,
-            UserName = newUser.UserName,
-            Email = newUser.Email,
-            Roles = roles.ToList()
-        };
-    }
+    public Task<RegisterResponseDto> RegisterAsync(RegisterRequestDto dto) =>
+        throw new ForbiddenException("Public registration is disabled. Agent accounts must be created by a photography company.");
 
     private string GenerateJwtToken(User user, List<string> roles)
     {
         // 创建JWT声明，包含用户信息和角色
         var claims = new List<Claim>
         {
-            new Claim(JwtRegisteredClaimNames.Sub, user.UserName),
+            new Claim(JwtRegisteredClaimNames.Sub, user.Id),
+            new Claim(ClaimTypes.Name, user.UserName ?? string.Empty),
             new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
             new Claim(ClaimTypes.NameIdentifier, user.Id),
             new Claim("uid", user.Id)
@@ -92,19 +68,25 @@ public class AuthService : IAuthService
 
     public async Task<LoginResponseDto> LoginAsync(LoginRequestDto dto)
     {
-        var user = await _authRepository.FindByUsernameAsync(dto.UserName);
-        if (user == null)
+        if (string.IsNullOrWhiteSpace(dto.Email) || string.IsNullOrWhiteSpace(dto.Password))
+            throw new ArgumentException("A valid email and password are required.");
+        if (!new System.ComponentModel.DataAnnotations.EmailAddressAttribute().IsValid(dto.Email.Trim()))
+            throw new ArgumentException("A valid email and password are required.");
+        var user = await _authRepository.FindByEmailAsync(dto.Email.Trim());
+        if (user == null || user.IsDeleted || (user.LockoutEnabled && user.LockoutEnd > DateTimeOffset.UtcNow))
         {
-            throw new ArgumentException("User not found");
+            throw new UnauthorizedAccessException("Invalid login credentials.");
         }
 
         var isValid = await _authRepository.CheckPasswordAsync(user, dto.Password);
         if (!isValid)
         {
-            throw new ArgumentException("Invalid password");
+            throw new UnauthorizedAccessException("Invalid login credentials.");
         }
 
         var roles = await _authRepository.GetRolesAsync(user);
+        if (roles.Count == 0 || !await _authRepository.HasRequiredProfilesAsync(user, roles))
+            throw new ForbiddenException("Account roles and profiles are inconsistent.");
         var token = GenerateJwtToken(user, roles.ToList());
         return new LoginResponseDto
         {

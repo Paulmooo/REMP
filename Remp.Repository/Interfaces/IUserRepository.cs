@@ -12,8 +12,9 @@ public interface IUserRepository
     Task<List<ListingCase>> GetListingCasesByUserIdAgentAsync(string userId);
     Task<Agent?> GetAgentByIdAsync(string userId);
     Task<PhotographyCompany?> GetPhotographyCompanyByIdAsync(string companyId);
+    Task<List<Agent>> GetAgentsByCompanyIdAsync(string companyId);
     Task AddAgentToPhotographyCompany(PhotographyCompany company, Agent agent);
-    Task<IdentityResult> CreateAgentAsync(Agent agent, User user, string password, PhotographyCompany company);
+    Task<IdentityResult> CreateAgentAsync(Agent agent, User user, string? password, PhotographyCompany company);
     Task<Agent?> GetAgentByEmailAsync(string email);
     Task<IdentityResult> ChangePasswordAsync(User user, string currentPassword, string newPassword);
 }

@@ -59,7 +59,10 @@ public class UserRepository : IUserRepository
     public async Task<Agent?> GetAgentByIdAsync(string userId)
     {
         return await _dbContext.Agents
-            .FirstOrDefaultAsync(a => a.Id == userId);
+            .Include(a => a.User)
+            .FirstOrDefaultAsync(a => a.Id == userId && !a.User.IsDeleted &&
+                _dbContext.UserRoles.Any(ur => ur.UserId == a.Id &&
+                    _dbContext.Roles.Any(r => r.Id == ur.RoleId && r.NormalizedName == "AGENT")));
     }
 
     public async Task<PhotographyCompany?> GetPhotographyCompanyByIdAsync(string companyId)
@@ -67,8 +70,17 @@ public class UserRepository : IUserRepository
         return await _dbContext.PhotographyCompanies
             .Include(c => c.Agents)
             .ThenInclude(a => a.User)
-            .FirstOrDefaultAsync(c => c.Id == companyId);
+            .FirstOrDefaultAsync(c => c.Id == companyId && !c.User.IsDeleted);
     }
+
+    public async Task<List<Agent>> GetAgentsByCompanyIdAsync(string companyId) =>
+        await _dbContext.Agents.AsNoTracking()
+            .Include(a => a.User)
+            .Where(a => a.PhotographyCompanies.Any(c => c.Id == companyId) && !a.User.IsDeleted &&
+                _dbContext.UserRoles.Any(ur => ur.UserId == a.Id &&
+                    _dbContext.Roles.Any(r => r.Id == ur.RoleId && r.NormalizedName == "AGENT")))
+            .OrderBy(a => a.AgentFirstName).ThenBy(a => a.AgentLastName).ThenBy(a => a.Id)
+            .ToListAsync();
 
     public async Task AddAgentToPhotographyCompany(PhotographyCompany company, Agent agent)
     {
@@ -84,12 +96,14 @@ public class UserRepository : IUserRepository
         }
     }
 
-    public async Task<IdentityResult> CreateAgentAsync(Agent agent, User user, string password, PhotographyCompany company)
+    public async Task<IdentityResult> CreateAgentAsync(Agent agent, User user, string? password, PhotographyCompany company)
     {
         await using var transaction = await _dbContext.Database.BeginTransactionAsync();
         try
         {
-            var createResult = await _userManager.CreateAsync(user, password);
+            var createResult = password == null
+                ? await _userManager.CreateAsync(user)
+                : await _userManager.CreateAsync(user, password);
             if (!createResult.Succeeded)
             {
                 await transaction.RollbackAsync();
@@ -125,9 +139,12 @@ public class UserRepository : IUserRepository
 
     public async Task<Agent?> GetAgentByEmailAsync(string email)
     {
+        var normalizedEmail = _userManager.NormalizeEmail(email);
         return await _dbContext.Agents
             .Include(a => a.User)
-            .FirstOrDefaultAsync(a => a.User.Email == email);
+            .SingleOrDefaultAsync(a => a.User.NormalizedEmail == normalizedEmail && !a.User.IsDeleted &&
+                _dbContext.UserRoles.Any(ur => ur.UserId == a.Id &&
+                    _dbContext.Roles.Any(r => r.Id == ur.RoleId && r.NormalizedName == "AGENT")));
     }
 
     public async Task<IdentityResult> ChangePasswordAsync(User user, string currentPassword, string newPassword)
