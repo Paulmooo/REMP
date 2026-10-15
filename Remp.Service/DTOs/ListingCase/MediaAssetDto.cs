@@ -9,4 +9,6 @@ public class MediaAssetDto
     public MediaType MediaType { get; set; }
     public string MediaUrl { get; set; }
     public DateTime UploadedAt { get; set; }
+    public bool IsSelected { get; set; }
+    public bool IsHero { get; set; }
 }
