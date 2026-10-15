@@ -1,6 +1,7 @@
 # Custom ignores in this repo
 /docs/
 /.vscode/
+/.ua/
 
 # Build results
 [Bb]in/
