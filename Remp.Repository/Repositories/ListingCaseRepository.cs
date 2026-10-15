@@ -15,16 +15,53 @@ public class ListingCaseRepository : IListingCaseRepository
         _dbContext = dbContext;
     }
 
-    public Task<bool> IsActiveCompanyAdminAsync(string userId) =>
-        _dbContext.PhotographyCompanies.AnyAsync(c => c.Id == userId && !c.User.IsDeleted &&
-            _dbContext.UserRoles.Any(ur => ur.UserId == userId &&
-                _dbContext.Roles.Any(r => r.Id == ur.RoleId && r.NormalizedName == "ADMIN")));
+    public Task<List<CaseContact>> GetContactsAsync(int id) =>
+        _dbContext.CaseContacts.AsNoTracking().Where(c => c.ListingCaseId == id)
+            .OrderBy(c => c.ContactId).ToListAsync();
 
-    public Task<Agent?> GetActiveAgentAsync(string agentId) =>
-        _dbContext.Agents.AsNoTracking().Include(a => a.PhotographyCompanies).FirstOrDefaultAsync(a =>
-            a.Id == agentId && !a.User.IsDeleted &&
-            _dbContext.UserRoles.Any(ur => ur.UserId == a.Id &&
-                _dbContext.Roles.Any(r => r.Id == ur.RoleId && r.NormalizedName == "AGENT")));
+    public async Task<CaseContact> AddContactAsync(int id, CaseContact contact, Func<ListingCase, Task> authorize)
+    {
+        await using var transaction = await _dbContext.Database.BeginTransactionAsync(System.Data.IsolationLevel.Serializable);
+        var listing = await _dbContext.ListingCases.AsNoTracking().Include(l => l.Agents)
+            .SingleOrDefaultAsync(l => l.Id == id && !l.IsDeleted)
+            ?? throw new KeyNotFoundException("Listing case not found.");
+        await authorize(listing);
+        contact.ListingCaseId = listing.Id;
+        _dbContext.CaseContacts.Add(contact);
+        try
+        {
+            await _dbContext.SaveChangesAsync();
+            await transaction.CommitAsync();
+            return contact;
+        }
+        catch
+        {
+            _dbContext.Entry(contact).State = EntityState.Detached;
+            throw;
+        }
+    }
+
+    public async Task<bool> IsActiveCompanyAdminAsync(string userId)
+    {
+        var user = await _dbContext.PhotographyCompanies.AsNoTracking()
+            .Where(c => c.Id == userId && !c.User.IsDeleted &&
+                _dbContext.UserRoles.Any(ur => ur.UserId == userId &&
+                    _dbContext.Roles.Any(r => r.Id == ur.RoleId && r.NormalizedName == "ADMIN")))
+            .Select(c => c.User).FirstOrDefaultAsync();
+        return user != null && !IsLockedOut(user);
+    }
+
+    public async Task<Agent?> GetActiveAgentAsync(string agentId)
+    {
+        var agent = await _dbContext.Agents.AsNoTracking().Include(a => a.User).Include(a => a.PhotographyCompanies)
+            .FirstOrDefaultAsync(a => a.Id == agentId && !a.User.IsDeleted &&
+                _dbContext.UserRoles.Any(ur => ur.UserId == a.Id &&
+                    _dbContext.Roles.Any(r => r.Id == ur.RoleId && r.NormalizedName == "AGENT")));
+        return agent != null && !IsLockedOut(agent.User) ? agent : null;
+    }
+
+    // Evaluate after the targeted database read: SQLite does not support DateTimeOffset ordering.
+    private static bool IsLockedOut(User user) => user.LockoutEnabled && user.LockoutEnd > DateTimeOffset.UtcNow;
 
     public async Task<ListingCase> UpdateMediaSelectionAsync(int id, Func<ListingCase, Task> update)
     {

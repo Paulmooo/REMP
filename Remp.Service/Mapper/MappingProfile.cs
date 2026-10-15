@@ -21,6 +21,7 @@ public class MappingProfile : Profile
 
         CreateMap<ListingCase, ListingCaseItemDto>();
         CreateMap<Agent, AgentBriefDto>();
+        CreateMap<CaseContact, CaseContactDto>();
         CreateMap<MediaAsset, MediaAssetDto>();
         CreateMap<Agent, GetAgentResponseDto>()
             .ForMember(dest => dest.Email, opt => opt.MapFrom(src => src.User.Email));

@@ -19,6 +19,36 @@ namespace Remp.API.Controllers
             _listingCaseService = listingCaseService;
         }
 
+        /// <summary>Read Listing contacts, ordered by contact ID. An empty Listing returns an empty array.</summary>
+        [HttpGet("listings/{id:int}/contacts")]
+        [Authorize(Roles = "Admin,Agent")]
+        [ProducesResponseType(typeof(ApiResponse<List<CaseContactDto>>), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> GetContacts(int id)
+        {
+            var userId = User.FindFirstValue("uid") ?? User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var result = await _listingCaseService.GetContactsAsync(id, userId);
+            return Ok(ApiResponse<List<CaseContactDto>>.Ok(result, "Contacts retrieved successfully."));
+        }
+
+        /// <summary>Add an independent contact record as an active assigned Agent. Ownership comes from the URL.</summary>
+        [HttpPost("listings/{id:int}/contacts")]
+        [Authorize(Policy = "AgentPolicy")]
+        [ProducesResponseType(typeof(ApiResponse<CaseContactDto>), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> AddContact(int id, [FromBody] CreateCaseContactRequestDto dto)
+        {
+            var userId = User.FindFirstValue("uid") ?? User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var result = await _listingCaseService.AddContactAsync(id, dto, userId);
+            return Ok(ApiResponse<CaseContactDto>.Ok(result, "Contact added successfully."));
+        }
+
         /// <summary>Assign an active Agent belonging to the listing owner's company. Idempotent.</summary>
         [HttpPut("listings/{id:int}/agents/{agentId}")]
         [Authorize(Policy = "AdminPolicy")]

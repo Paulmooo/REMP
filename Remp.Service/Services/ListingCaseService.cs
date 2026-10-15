@@ -29,6 +29,53 @@ public class ListingCaseService : IListingCaseService
         _updateValidator = updateValidator;
     }
 
+    public async Task<List<CaseContactDto>> GetContactsAsync(int id, string userId)
+    {
+        ValidateContactIdentity(id, userId);
+        var listing = await _listingCaseRepository.GetListingCaseByIdAsync(id)
+            ?? throw new KeyNotFoundException("Listing case not found.");
+        await AuthorizeContactsAsync(listing, userId, false);
+        return _mapper.Map<List<CaseContactDto>>(await _listingCaseRepository.GetContactsAsync(id));
+    }
+
+    public async Task<CaseContactDto> AddContactAsync(int id, CreateCaseContactRequestDto dto, string userId)
+    {
+        ValidateContactIdentity(id, userId);
+        if (dto == null) throw new ArgumentException("A contact request is required.");
+        var normalized = new CreateCaseContactRequestDto
+        {
+            FirstName = dto.FirstName?.Trim() ?? "", LastName = dto.LastName?.Trim() ?? "",
+            CompanyName = dto.CompanyName?.Trim() ?? "", ProfileUrl = dto.ProfileUrl?.Trim() ?? "",
+            Email = dto.Email?.Trim() ?? "", PhoneNumber = dto.PhoneNumber?.Trim() ?? ""
+        };
+        var validation = await new Remp.Service.Validators.CreateCaseContactRequestValidator().ValidateAsync(normalized);
+        if (!validation.IsValid) throw new ArgumentException(string.Join("; ", validation.Errors.Select(e => e.ErrorMessage)));
+        var contact = new CaseContact
+        {
+            FirstName = normalized.FirstName, LastName = normalized.LastName,
+            CompanyName = normalized.CompanyName!, ProfileUrl = normalized.ProfileUrl!,
+            Email = normalized.Email!, PhoneNumber = normalized.PhoneNumber!
+        };
+        var result = await _listingCaseRepository.AddContactAsync(id, contact,
+            listing => AuthorizeContactsAsync(listing, userId, true));
+        return _mapper.Map<CaseContactDto>(result);
+    }
+
+    private static void ValidateContactIdentity(int id, string userId)
+    {
+        if (string.IsNullOrWhiteSpace(userId)) throw new UnauthorizedAccessException("User ID claim is missing in token.");
+        if (id <= 0) throw new ArgumentException("A positive Listing ID is required.");
+    }
+
+    private async Task AuthorizeContactsAsync(ListingCase listing, string userId, bool write)
+    {
+        if (!write && listing.UserId == userId && await _listingCaseRepository.IsActiveCompanyAdminAsync(userId)) return;
+        var agent = await _listingCaseRepository.GetActiveAgentAsync(userId);
+        if (agent == null || !listing.Agents.Any(a => a.Id == userId) ||
+            !agent.PhotographyCompanies.Any(c => c.Id == listing.UserId))
+            throw new ForbiddenException("An active assigned Agent from the listing company is required.");
+    }
+
     public Task<ListingAgentAssignmentDto> AssignAgentAsync(int id, string agentId, string userId) =>
         SetAssignmentAsync(id, agentId, userId, true);
 
@@ -286,6 +333,7 @@ public class ListingCaseService : IListingCaseService
         {
             throw new UnauthorizedAccessException("Unsupported role");
         }
+        await AuthorizeContactsAsync(listingCase, userId, false);
         return _mapper.Map<ListingCaseItemDto>(listingCase);
     }
 

@@ -5,6 +5,8 @@ namespace Remp.Repository.Interfaces;
 
 public interface IListingCaseRepository
 {
+    Task<List<CaseContact>> GetContactsAsync(int id);
+    Task<CaseContact> AddContactAsync(int id, CaseContact contact, Func<ListingCase, Task> authorize);
     Task<ListingCase> UpdateMediaSelectionAsync(int id, Func<ListingCase, Task> update);
     Task<bool> IsActiveCompanyAdminAsync(string userId);
     Task<Agent?> GetActiveAgentAsync(string agentId);
