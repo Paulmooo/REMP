@@ -73,7 +73,7 @@ This project was built as an ASP.NET Core Web API backend with role-based authen
 The solution is organized as a layered .NET backend:
 
 ```text
-frontend/         React + TypeScript + Vite read-only web client
+frontend/         React + TypeScript + Vite web client
 Remp.API/          API controllers, authentication, authorization, middleware, DI setup
 Remp.Service/      Business logic, DTOs, validators, mapping profiles
 Remp.Repository/   Repository interfaces and data access implementations
@@ -217,7 +217,7 @@ Tests use isolated SQLite records and a standalone local OpenAPI host, without s
 
 ## Frontend foundation
 
-The React + TypeScript frontend provides email login, session restoration, Admin/Agent navigation, paginated Listings and read-only property/media/contact details. See [frontend/README.md](frontend/README.md) for configuration, API behavior, design reference and acceptance limits.
+The React + TypeScript frontend provides email login, session restoration, Admin/Agent navigation, paginated Listings, Admin Listing creation/editing, and property/media/contact details. Agent access stays read-only; Delivered Listings cannot be edited. See [frontend/README.md](frontend/README.md) for configuration, API behavior, design reference and acceptance limits.
 
 ```bash
 cd frontend

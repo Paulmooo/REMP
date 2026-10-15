@@ -6,6 +6,7 @@ import { ProtectedRoute } from "./components/ProtectedRoute";
 import { Feedback, Loading } from "./components/Feedback";
 import { Login } from "./pages/Login";
 import { Listings } from "./pages/Listings";
+import { ListingEditor } from "./pages/ListingEditor";
 import { ListingDetail } from "./pages/ListingDetail";
 function Forbidden() {
   const auth = useAuth();
@@ -26,7 +27,7 @@ export function App() {
   const { pathname } = useLocation();
   useEffect(() => {
     window.scrollTo(0, 0);
-    document.title = `${pathname === "/login" ? "Sign in" : pathname === "/listings" ? "Listings" : "Property details"} · REMP`;
+    document.title = `${pathname === "/login" ? "Sign in" : pathname === "/listings" ? "Listings" : pathname === "/listings/new" ? "Create listing" : pathname.endsWith("/edit") ? "Edit listing" : "Property details"} · REMP`;
   }, [pathname]);
   return (
     <Routes>
@@ -36,6 +37,8 @@ export function App() {
         <Route element={<Layout />}>
           <Route index element={<Navigate to="/listings" replace />} />
           <Route path="/listings" element={<Listings />} />
+          <Route path="/listings/new" element={<ListingEditor />} />
+          <Route path="/listings/:id/edit" element={<ListingEditor edit />} />
           <Route path="/listings/:id" element={<ListingDetail />} />
           <Route
             path="*"

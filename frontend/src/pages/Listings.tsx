@@ -27,7 +27,8 @@ export function Listings() {
               : "Property listings assigned to you."}
           </p>
         </div>
-        {data && <span className="count">{data.totalCount} listings</span>}
+        <div className="heading-actions">{data && <span className="count">{data.totalCount} listings</span>}
+          {user?.roles.includes("Admin") && <Link className="button primary" to="/listings/new">Create listing</Link>}</div>
       </div>
       {error ? (
         <ErrorState error={error} retry={retry} />

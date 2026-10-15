@@ -822,3 +822,31 @@ p + p {
     animation: none;
   }
 }
+
+.heading-actions, .detail-actions, .form-actions { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+.detail-actions { justify-content: flex-end; margin: 16px 0; }
+.listing-editor { max-width: 982px; margin: auto; }
+.listing-editor form { background: white; border: 1px solid #e3e7e9; border-radius: 16px; padding: 32px 40px; }
+.listing-editor fieldset { border: 0; padding: 0; margin: 0; min-width: 0; }
+.form-section + .form-section { border-top: 1px solid #e7eaed; margin-top: 30px; padding-top: 30px; }
+.form-section h2 { font-size: 18px; color: #202e47; margin-bottom: 20px; }
+.form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 22px 24px; }
+.form-field { min-width: 0; }
+.form-field.wide { grid-column: 1 / -1; }
+.form-field label { display: flex; gap: 6px; align-items: center; font-weight: 600; font-size: 13px; margin-bottom: 8px; }
+.form-field label img { flex: none; }
+.form-field input, .form-field select, .form-field textarea { width: 100%; min-height: 46px; border: 1px solid #c4cdd2; border-radius: 7px; padding: 11px 14px; color: #001c2a; background: #fafafa; font: inherit; outline-offset: 3px; }
+.form-field textarea { resize: vertical; }
+.form-field :is(input,select,textarea):focus { outline: 2px solid #168ac1; border-color: transparent; }
+.form-field [aria-invalid="true"] { border-color: #a33e30; }
+.field-error { color: #8e3b30; margin-top: 6px; font-size: 13px; }
+.form-actions { justify-content: flex-end; border-top: 1px solid #e7eaed; margin-top: 32px; padding-top: 24px; }
+.listing-editor .feedback, .listing-editor .inline-error { margin-top: 24px; }
+@media (max-width: 640px) {
+  .heading-actions { align-items: flex-end; flex-direction: column; gap: 12px; }
+  .listing-editor form { padding: 24px 18px; }
+  .form-grid { grid-template-columns: 1fr; gap: 20px; }
+  .listing-editor .page-heading h1 { font-size: 32px; }
+  .form-actions { gap: 10px; }
+  .form-actions .button { padding: 11px 19px; }
+}
