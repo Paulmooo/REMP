@@ -1,6 +1,7 @@
 import { useAuth } from "../auth/AuthContext";
 import { useState, type ReactNode } from "react";
 import { request } from "../api/client";
+import { AgentAssignment } from "../components/AgentAssignment";
 import { MediaUpload } from "../components/MediaUpload";
 import { Link, useLocation, useParams } from "react-router-dom";
 import type { Listing, Media } from "../api/types";
@@ -198,6 +199,10 @@ function Detail({ id }: { id: string }) {
         </Section>
       )}
       <Section title="Assigned agents" count={agents.length}>
+        {user?.roles.includes("Admin") && <AgentAssignment listingId={id} agents={agents} refresh={async (signal) => {
+          const updated = await request<Listing>(`/ListingCase/listings/${id}`, { signal });
+          if (!signal.aborted) setRefreshed(updated);
+        }} />}
         {agents.length ? (
           <div className="people-grid">
             {agents.map((agent) => (

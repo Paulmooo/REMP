@@ -70,7 +70,7 @@ export function normalizeError(error: unknown, login = false): ApiError {
 export async function request<T>(
   url: string,
   options: {
-    method?: "GET" | "POST" | "PUT";
+    method?: "GET" | "POST" | "PUT" | "DELETE";
     data?: unknown;
     signal?: AbortSignal;
     public?: boolean;

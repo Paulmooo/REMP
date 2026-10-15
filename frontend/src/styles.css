@@ -864,3 +864,19 @@ p + p {
 @media (max-width: 600px) { .pending-media li { flex-wrap: wrap; } .pending-media img, .pending-media video { width: 90px; height: 75px; } .upload-drop { padding: 16px; } }
 .upload-section > .muted { margin-bottom: 18px; }
 .upload-section #upload-help { margin: 12px 0; color: #586773; line-height: 1.6; }
+
+.agent-management { margin-bottom: 24px; }
+.assignment-panel { margin-top: 18px; padding: 20px; border: 1px solid #ddd; border-radius: 12px; }
+.assignment-panel > h3 { margin: 16px 0 10px; }
+.assignment-list { list-style: none; padding: 0; margin: 16px 0; display: grid; gap: 12px; }
+.assignment-list li { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 16px; background: #f5f5f5; border-radius: 10px; }
+.assignment-list li > div, .assignment-list strong { min-width: 0; overflow-wrap: anywhere; }
+.assignment-list p { margin: 5px 0 0; overflow-wrap: anywhere; }
+.assignment-list .button { flex-shrink: 0; }
+.assignment-confirm { padding: 16px; border: 1px solid #aaa; border-radius: 10px; }
+.assignment-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 12px; }
+.assignment-panel .feedback { margin: 16px 0; }
+@media (max-width: 600px) {
+  .assignment-panel { padding: 12px; }
+  .assignment-list li { align-items: flex-start; flex-direction: column; }
+}

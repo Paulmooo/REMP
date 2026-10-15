@@ -58,7 +58,7 @@ Unit tests cover identity restoration, protected routes and API errors. Browser 
 
 The supplied Figma file `ofk35IrEyrN6Y9yy8PYyjG`, node `2199:448` (delivery detail), was accessible after the link update. The detail page follows its light canvas, white navigation, brown property hero, media groups and contact cards. Four original property-stat SVGs are stored in `public/icons/`, preserving their intrinsic dimensions. Property photos and avatars come from the API. Login/listing layouts extend that visual language; their specific Figma screens were not inspected. The result adapts the detail composition to an authenticated, responsive, read-only workflow rather than claiming full pixel reproduction.
 
-No uploaded-media deletion, Agent assignment, status changes, selection editing, contact creation, account management, Dashboard, activity history, download, sharing, registration or deployment UI is included. Real Admin login and Listing creation/edit persistence were accepted on 2026-10-16 using the local API and the explicitly authorized pm Admin account. Real Agent/Delivered/media scenarios still need suitable accounts, data and accessible media URLs.
+No uploaded-media deletion, status changes, selection editing, contact creation, account management, Dashboard, activity history, download, sharing, registration or deployment UI is included. Real Admin login and Listing creation/edit persistence were accepted on 2026-10-16 using the local API and the explicitly authorized pm Admin account. Real Agent/Delivered/media scenarios still need suitable accounts, data and accessible media URLs.
 
 ## Listing create/edit acceptance
 
@@ -81,3 +81,14 @@ Transport progress never implies success: 100% waits for server acknowledgement.
 The API process needs `AzureBlobStorage:ConnectionString` and `AzureBlobStorage:ContainerName`, an existing container and write/cleanup permissions. Blob HTTP content types are set from the validated extensions. The ordinary returned Blob URL must be readable through the storage's existing access policy for inline viewing. This change does not create containers, change permissions, configure SAS, or provision storage. The local appsettings Blob values are empty; real Blob upload/persistence/URL access remain unverified. The existing local acceptance Listing 1 is reserved for later real integration. Browser fixtures (Listing 42 and artificial PNG/MP4/PDF files) are isolated tests only.
 
 Verification for this batch: 28 frontend unit tests; 74 desktop/mobile browser regressions; additionally the create/edit/upload/reopen chain passed on both sizes; 170 backend regressions before the last seven format/batch tests, followed by 26 media service tests; typecheck and production build passed. Screenshots were visually inspected at desktop and mobile widths. See ignored `docs/ai/progress.md` for detailed boundaries.
+
+
+## Listing Agent assignment (N01 UI)
+
+Admin detail → **Assigned agents** → **Manage agents** loads the current company's candidates from `GET /api/User/agents`, showing returned name, email and company. Assign one or more existing company Agents with PUT; assigned choices are disabled. **Unassign** asks for confirmation and DELETEs only the Listing assignment, retaining company membership. Agents see assigned cards only and never fetch candidates. Delivered Listings retain the existing N01 permissions.
+
+Writes disable management operations and guard duplicate clicks, including across panel collapse/reopen. After server confirmation, the page GETs persisted detail; refresh failures lock writes and offer **Retry listing refresh**, which only repeats GET. Failed writes retain displayed assignments; lost connections require checking the current Listing before retrying. Session expiry follows the existing login flow, and aborted/late requests cannot overwrite another Listing or signed-out state. Company candidate responses do not provide invitation status; assignment never claims account activation or sent invitations.
+
+No account creation, company relationship edits or global user management is included. Real assignment/persistence acceptance needs an existing company Agent and an authenticated local Admin session; isolated HTTP fixtures are not evidence of real SQL/JWT integration. Current verification is recorded in ignored `docs/ai/progress.md`.
+
+Validation: 30 unit tests, 118 desktop/mobile browser checks (44 new assignment checks), TypeScript and production build passed. Assignment screenshots at both sizes were visually inspected. Real local API OpenAPI responds, but no authenticated session/company Agent data was available to verify real assignment persistence. No backend changes or additional backend test suite were introduced.
