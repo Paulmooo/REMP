@@ -1,3 +1,4 @@
+using Remp.Common.Exceptions;
 using FluentValidation;
 using System.Security.Cryptography;
 using Remp.Repository.Interfaces;
@@ -67,27 +68,26 @@ public class UserService : IUserService
         };
     }
 
-    public async Task AddAgentToPhotographyCompanyAsync(string userId, string companyId)
+    public async Task AddAgentToPhotographyCompanyAsync(string currentUserId, string agentId, string companyId)
     {
-        var agent = await _userRepository.GetAgentByIdAsync(userId);
-        if (agent == null)
-        {
-            throw new KeyNotFoundException("Agent not found");
-        }
+        if (string.IsNullOrWhiteSpace(currentUserId))
+            throw new UnauthorizedAccessException("User ID claim is missing in token.");
 
-        var company = await _userRepository.GetPhotographyCompanyByIdAsync(companyId);
-        if (company == null)
-        {
-            throw new KeyNotFoundException("Photography company not found");
-        }
+        if (companyId != currentUserId)
+            throw new ForbiddenException("Users can only manage their own photography company.");
 
-        if (company.Agents.Any(a => a.Id == userId))
-        {
-            throw new InvalidOperationException("Agent is already part of the photography company");
-        }
+        if (string.IsNullOrWhiteSpace(agentId))
+            throw new ArgumentException("Agent ID is required.");
+
+        var company = await _userRepository.GetPhotographyCompanyByIdAsync(companyId)
+            ?? throw new KeyNotFoundException("Photography company not found");
+        var agent = await _userRepository.GetAgentByIdAsync(agentId)
+            ?? throw new KeyNotFoundException("Agent not found");
+
+        if (company.Agents.Any(a => a.Id == agentId))
+            throw new ConflictException("Agent is already part of the photography company");
 
         await _userRepository.AddAgentToPhotographyCompany(company, agent);
-
     }
 
     public async Task<CreateAgentResponseDto> CreateAgentAsync(string currentUserId, CreateAgentRequestDto dto)
@@ -97,7 +97,7 @@ public class UserService : IUserService
         var company = await _userRepository.GetPhotographyCompanyByIdAsync(currentUserId);
         if (company == null)
         {
-            throw new UnauthorizedAccessException("Only photography company accounts can create agent accounts.");
+            throw new ForbiddenException("Only photography company accounts can create agent accounts.");
         }
 
         var temporaryPassword = GenerateTemporaryPassword();
@@ -115,28 +115,22 @@ public class UserService : IUserService
         {
             AgentFirstName = dto.AgentFirstName,
             AgentLastName = dto.AgentLastName,
-            AvatarUrl = dto.AvatarUrl,
+            AvatarUrl = dto.AvatarUrl ?? string.Empty,
             CompanyName = company.PhotographyCompanyName
         };
 
-        var createResult = await _userRepository.CreateAgentAsync(agent, user, temporaryPassword);
+        var createResult = await _userRepository.CreateAgentAsync(agent, user, temporaryPassword, company);
         if (!createResult.Succeeded)
         {
             var errors = string.Join("; ", createResult.Errors.Select(x => x.Description));
+            if (createResult.Errors.Any(x => x.Code is "DuplicateUserName" or "DuplicateEmail"))
+                throw new ConflictException("An account with this email or user name already exists.");
             throw new ArgumentException(string.IsNullOrWhiteSpace(errors) ? "Failed to create agent account." : errors);
         }
 
-        var createdAgent = await _userRepository.GetAgentByIdAsync(user.Id);
-        if (createdAgent == null)
-        {
-            throw new InvalidOperationException("Agent account was created, but agent profile was not found.");
-        }
-
-        await _userRepository.AddAgentToPhotographyCompany(company, createdAgent);
-
         return new CreateAgentResponseDto
         {
-            AgentId = createdAgent.Id,
+            AgentId = agent.Id,
             UserName = user.UserName,
             Email = user.Email,
             TemporaryPassword = temporaryPassword

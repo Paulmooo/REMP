@@ -243,6 +243,25 @@ public class ListingCaseServiceTests
             .WithMessage("Deleted listing cases cannot be updated.");
     }
 
+    [Theory]
+    [InlineData("other-company")]
+    [InlineData("unrelated-agent")]
+    [InlineData("assigned-agent")]
+    public async Task UpdateListingCaseAsync_WhenCallerIsNotOwner_DoesNotMutateOrSave(string callerId)
+    {
+        var listing = BuildListingCase(assignedAgentIds: ["assigned-agent"]);
+        _repositoryMock.Setup(x => x.UserExistsAsync(callerId)).ReturnsAsync(true);
+        _repositoryMock.Setup(x => x.GetListingCaseByIdAsync(7)).ReturnsAsync(listing);
+
+        var act = () => _service.UpdateListingCaseAsync(7, BuildUpdateDto(), callerId);
+
+        await act.Should().ThrowAsync<Remp.Common.Exceptions.ForbiddenException>();
+        listing.Title.Should().Be("Existing listing");
+        listing.UserId.Should().Be("owner-1");
+        _mapperMock.Verify(x => x.Map(It.IsAny<UpdateListingCaseRequestDto>(), It.IsAny<ListingCase>()), Times.Never);
+        _repositoryMock.Verify(x => x.UpdateListingCaseAsync(It.IsAny<ListingCase>()), Times.Never);
+    }
+
     private static CreateListingCaseRequestDto BuildCreateDto() =>
         new()
         {

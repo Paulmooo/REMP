@@ -13,7 +13,7 @@ public interface IUserRepository
     Task<Agent?> GetAgentByIdAsync(string userId);
     Task<PhotographyCompany?> GetPhotographyCompanyByIdAsync(string companyId);
     Task AddAgentToPhotographyCompany(PhotographyCompany company, Agent agent);
-    Task<IdentityResult> CreateAgentAsync(Agent agent, User user, string password);
+    Task<IdentityResult> CreateAgentAsync(Agent agent, User user, string password, PhotographyCompany company);
     Task<Agent?> GetAgentByEmailAsync(string email);
     Task<IdentityResult> ChangePasswordAsync(User user, string currentPassword, string newPassword);
 }

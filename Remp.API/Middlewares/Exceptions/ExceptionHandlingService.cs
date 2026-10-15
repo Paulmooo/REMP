@@ -1,3 +1,5 @@
+using FluentValidation;
+using Remp.Common.Exceptions;
 using System;
 using System.Text.Json;
 using Microsoft.AspNetCore.Diagnostics;
@@ -30,7 +32,15 @@ public class ExceptionHandlingService
 
     private static int GetStatusCode(Exception exception)
     {
-        if (exception is ArgumentException)
+        if (exception is ForbiddenException)
+        {
+            return StatusCodes.Status403Forbidden;
+        }
+        else if (exception is ConflictException)
+        {
+            return StatusCodes.Status409Conflict;
+        }
+        else if (exception is ArgumentException or ValidationException)
         {
             return StatusCodes.Status400BadRequest;
         }
@@ -50,7 +60,15 @@ public class ExceptionHandlingService
 
     private static string GetErrorMessage(Exception exception)
     {
-        if (exception is ArgumentException)
+        if (exception is ForbiddenException)
+        {
+            return "You do not have permission to perform this operation.";
+        }
+        else if (exception is ConflictException)
+        {
+            return exception.Message;
+        }
+        else if (exception is ArgumentException or ValidationException)
         {
             return "Invalid input provided.";
         }
