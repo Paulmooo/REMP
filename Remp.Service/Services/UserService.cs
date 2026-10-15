@@ -60,7 +60,7 @@ public class UserService : IUserService
         }
         else
         {
-            throw new ForbiddenException("Account requires a mapped Agent migration before accessing this workflow.");
+            throw new ForbiddenException("Account role is not supported by this workflow.");
         }
 
         return new UserInfoDto
