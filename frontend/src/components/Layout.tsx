@@ -28,7 +28,7 @@ export function Layout() {
               User {user?.id}
             </span>
           </div>
-          <button className="button secondary compact" onClick={logout}>
+          <button className="button secondary compact" onClick={() => { if (window.dispatchEvent(new Event("remp:before-signout", { cancelable: true }))) logout(); }}>
             Sign out
           </button>
         </div>

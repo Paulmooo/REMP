@@ -68,7 +68,7 @@ export function normalizeError(error: unknown, login = false): ApiError {
 export async function request<T>(
   url: string,
   options: {
-    method?: "GET" | "POST";
+    method?: "GET" | "POST" | "PUT";
     data?: unknown;
     signal?: AbortSignal;
     public?: boolean;

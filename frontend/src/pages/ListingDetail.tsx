@@ -1,5 +1,6 @@
+import { useAuth } from "../auth/AuthContext";
 import type { ReactNode } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useLocation, useParams } from "react-router-dom";
 import type { Listing, Media } from "../api/types";
 import { useResource } from "../api/useResource";
 import { ErrorState, Feedback, Loading } from "../components/Feedback";
@@ -53,6 +54,8 @@ export function ListingDetail() {
   return <Detail id={id} key={id} />;
 }
 function Detail({ id }: { id: string }) {
+  const { user } = useAuth();
+  const location = useLocation();
   const { data, error, retry } = useResource<Listing>(
     `/ListingCase/listings/${id}`,
   );
@@ -84,6 +87,8 @@ function Detail({ id }: { id: string }) {
       <Link className="back-link" to="/listings">
         ← Back to listings
       </Link>
+      {location.state?.listingSaved && <Feedback title="Listing saved">The persisted listing details are shown below.</Feedback>}
+      {user?.roles.includes("Admin") && <div className="detail-actions">{data.listingStatus === 3 ? <p className="muted">Delivered listing is read-only.</p> : <Link className="button secondary" to={`/listings/${id}/edit`}>Edit listing</Link>}</div>}
       <div className="property-hero">
         <div className="hero-image">
           {hero ? (
@@ -139,7 +144,7 @@ function Detail({ id }: { id: string }) {
               {new Intl.NumberFormat("en-AU", {
                 style: "currency",
                 currency: "AUD",
-                maximumFractionDigits: 0,
+                maximumFractionDigits: 2,
               }).format(data.price)}
             </dd>
           </div>
