@@ -57,3 +57,11 @@ AGENTS.md
 bin/
 obj/
 **/publish/
+
+# Frontend dependencies and generated output
+/frontend/node_modules/
+/frontend/dist/
+/frontend/coverage/
+/frontend/playwright-report/
+/frontend/test-results/
+!/frontend/.env.example

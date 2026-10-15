@@ -1,6 +1,6 @@
 # Remp Real Estate Media Delivery Platform
 
-Remp is a backend platform for managing real-estate media delivery workflows between photography companies and real-estate agents.
+Remp is a platform for managing real-estate media delivery workflows between photography companies and real-estate agents.
 
 Photography companies can create property listing cases, upload media assets, assign agents, and manage delivery status. Agents can access assigned listings, review property information, and work with listing media for final property presentation workflows.
 
@@ -20,7 +20,7 @@ This project was built as an ASP.NET Core Web API backend with role-based authen
 
 ### Authentication and Authorization
 
-- User registration and login
+- Email/password login; public registration is disabled
 - JWT-based authentication
 - ASP.NET Core Identity integration
 - Role seeding for `Admin`, `Agent`, and `User`
@@ -73,6 +73,7 @@ This project was built as an ASP.NET Core Web API backend with role-based authen
 The solution is organized as a layered .NET backend:
 
 ```text
+frontend/         React + TypeScript + Vite read-only web client
 Remp.API/          API controllers, authentication, authorization, middleware, DI setup
 Remp.Service/      Business logic, DTOs, validators, mapping profiles
 Remp.Repository/   Repository interfaces and data access implementations
@@ -121,7 +122,7 @@ Key relationships:
 
 The backend currently exposes endpoints for:
 
-- `Auth`: registration, login, and user listing
+- `Auth`: email login and user listing; the legacy registration endpoint is disabled
 - `User`: current user profile, password update, agent creation, and company-agent assignment
 - `ListingCase`: listing creation, update, query, detail retrieval, deletion, status update, and listing media retrieval
 - `MediaAsset`: media upload and deletion
@@ -192,13 +193,11 @@ dotnet test Remp.Tests/Remp.Tests.csproj
 
 ## Planned Extensions
 
-- Agent-driven display media selection
 - Final property preview page generation
 - Shareable property page links
 - Download-all media package generation
 - Multi-quality image downloads
 - Activity/history tracking with NoSQL storage
-- Swagger/OpenAPI documentation
 - Docker and CI/CD deployment automation
 
 ## Listing Agent assignment (N01)
@@ -215,3 +214,18 @@ Assignment grants Agent access to the Listing detail/media, list and current-use
 Development OpenAPI JSON is available at `/openapi/v1.json` (no Swagger UI). There is no demo account initializer or automatic password setup. Public registration remains disabled; ordinary company-created Agents remain passwordless with `requiresInvitation=true`.
 
 Tests use isolated SQLite records and a standalone local OpenAPI host, without starting application initialization or connecting to SQL Server. SQL Server concurrency and the complete JWT HTTP business flow have not been verified. `docs/` remains entirely Git ignored.
+
+## Frontend foundation
+
+The React + TypeScript frontend provides email login, session restoration, Admin/Agent navigation, paginated Listings and read-only property/media/contact details. See [frontend/README.md](frontend/README.md) for configuration, API behavior, design reference and acceptance limits.
+
+```bash
+cd frontend
+npm ci
+cp .env.example .env.local
+npm run dev
+```
+
+Open http://127.0.0.1:5173. Run the configured API separately using `dotnet run --project Remp.API/Remp.API.csproj --launch-profile http` from the repository root. Vite proxies `/api` to the existing `http://localhost:5265` HTTP profile; no backend configuration was changed. A running SQL Server-backed API and existing password-enabled Admin/Agent credentials are required for real login. Company-created passwordless accounts remain pending invitation.
+
+Frontend checks: `npm run typecheck`, `npm test`, `npm run build`, `npm run test:browser` (installed Google Chrome; stop the development server first). Browser tests serve production assets and use isolated API fixtures only in tests. Production hosting/API routing and deployment have not been implemented.
