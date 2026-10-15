@@ -1,6 +1,5 @@
 using Remp.Common.Exceptions;
 using FluentValidation;
-using System.Security.Cryptography;
 using Remp.Repository.Interfaces;
 using Remp.Models.Entities;
 using Remp.Service.DTOs.User;
@@ -31,16 +30,20 @@ public class UserService : IUserService
     public async Task<UserInfoDto> FindCurrentUserInfoAsync(string userId)
     {
         var currentUser = await _userRepository.GetUserByIdAsync(userId);
-        if (currentUser == null)
+        if (currentUser == null || currentUser.IsDeleted)
         {
-            throw new ArgumentException("User not found");
+            throw new UnauthorizedAccessException("User not found");
         }
 
         var roles = await _userRepository.GetRolesByUserIdAsync(userId);
         if (roles.Count == 0)
         {
-            throw new ArgumentException("User role not found");
+            throw new ForbiddenException("User role not found");
         }
+
+        if (roles.Contains("Agent") && await _userRepository.GetAgentByIdAsync(userId) == null ||
+            roles.Contains("Admin") && await _userRepository.GetPhotographyCompanyByIdAsync(userId) == null)
+            throw new ForbiddenException("Account roles and profiles are inconsistent.");
 
         List<int> listingCaseIds;
         if (roles.Contains("Admin"))
@@ -57,7 +60,7 @@ public class UserService : IUserService
         }
         else
         {
-            throw new ArgumentException("Unsupported role");
+            throw new ForbiddenException("Account requires a mapped Agent migration before accessing this workflow.");
         }
 
         return new UserInfoDto
@@ -100,7 +103,6 @@ public class UserService : IUserService
             throw new ForbiddenException("Only photography company accounts can create agent accounts.");
         }
 
-        var temporaryPassword = GenerateTemporaryPassword();
         var userName = dto.Email;
 
         var user = new User
@@ -119,13 +121,12 @@ public class UserService : IUserService
             CompanyName = company.PhotographyCompanyName
         };
 
-        var createResult = await _userRepository.CreateAgentAsync(agent, user, temporaryPassword, company);
+        var createResult = await _userRepository.CreateAgentAsync(agent, user, null, company);
         if (!createResult.Succeeded)
         {
-            var errors = string.Join("; ", createResult.Errors.Select(x => x.Description));
             if (createResult.Errors.Any(x => x.Code is "DuplicateUserName" or "DuplicateEmail"))
                 throw new ConflictException("An account with this email or user name already exists.");
-            throw new ArgumentException(string.IsNullOrWhiteSpace(errors) ? "Failed to create agent account." : errors);
+            throw new ArgumentException("Failed to create agent account. Check the account input and password policy.");
         }
 
         return new CreateAgentResponseDto
@@ -133,42 +134,18 @@ public class UserService : IUserService
             AgentId = agent.Id,
             UserName = user.UserName,
             Email = user.Email,
-            TemporaryPassword = temporaryPassword
+            RequiresInvitation = true
         };
     }
 
-    private static string GenerateTemporaryPassword()
+    public async Task<GetAgentResponseDto> GetAgentByEmailAsync(string currentUserId, string email)
     {
-        const string lower = "abcdefghijklmnopqrstuvwxyz";
-        const string upper = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-        const string digits = "0123456789";
-        const string special = "!@#$%^&*";
-        var allChars = lower + upper + digits + special;
-
-        var passwordChars = new[]
-        {
-            lower[RandomNumberGenerator.GetInt32(lower.Length)],
-            upper[RandomNumberGenerator.GetInt32(upper.Length)],
-            digits[RandomNumberGenerator.GetInt32(digits.Length)],
-            special[RandomNumberGenerator.GetInt32(special.Length)]
-        }.ToList();
-
-        for (int i = passwordChars.Count; i < 12; i++)
-        {
-            passwordChars.Add(allChars[RandomNumberGenerator.GetInt32(allChars.Length)]);
-        }
-
-        for (int i = passwordChars.Count - 1; i > 0; i--)
-        {
-            var swapIndex = RandomNumberGenerator.GetInt32(i + 1);
-            (passwordChars[i], passwordChars[swapIndex]) = (passwordChars[swapIndex], passwordChars[i]);
-        }
-
-        return new string(passwordChars.ToArray());
-    }
-
-    public async Task<GetAgentResponseDto> GetAgentByEmailAsync(string email)
-    {
+        if (string.IsNullOrWhiteSpace(email) || !new System.ComponentModel.DataAnnotations.EmailAddressAttribute().IsValid(email))
+            throw new ArgumentException("A valid exact email is required.");
+        if (string.IsNullOrWhiteSpace(currentUserId))
+            throw new UnauthorizedAccessException("User ID claim is missing in token.");
+        if (await _userRepository.GetPhotographyCompanyByIdAsync(currentUserId) == null)
+            throw new ForbiddenException("Only photography company accounts can search agents.");
         var agent = await _userRepository.GetAgentByEmailAsync(email);
         if (agent == null)
         {
@@ -194,10 +171,7 @@ public class UserService : IUserService
             throw new KeyNotFoundException("Photography company not found");
         }
 
-        var agents = company.Agents
-            .OrderBy(a => a.AgentFirstName)
-            .ThenBy(a => a.AgentLastName)
-            .ToList();
+        var agents = await _userRepository.GetAgentsByCompanyIdAsync(companyId);
 
         return _mapper.Map<List<GetAgentResponseDto>>(agents);
     }
@@ -207,16 +181,15 @@ public class UserService : IUserService
         await _updatePasswordRequestValidator.ValidateAndThrowAsync(dto);
 
         var user = await _userRepository.GetUserByIdAsync(userId);
-        if (user == null)
+        if (user == null || user.IsDeleted)
         {
-            throw new KeyNotFoundException("User not found");
+            throw new UnauthorizedAccessException("User not found");
         }
 
         var result = await _userRepository.ChangePasswordAsync(user, dto.CurrentPassword, dto.NewPassword);
         if (!result.Succeeded)
         {
-            var errors = string.Join("; ", result.Errors.Select(x => x.Description));
-            throw new ArgumentException(string.IsNullOrWhiteSpace(errors) ? "Failed to update password." : errors);
+            throw new ArgumentException("Failed to update password. Check the current password and new password policy.");
         }
     }
 

@@ -31,7 +31,8 @@ public class AgentCreationTransactionTests
         Assert.Equal(user.Id, profile.User.Id);
         Assert.Equal("company", Assert.Single(profile.PhotographyCompanies).Id);
         Assert.True(await fixture.Users.IsInRoleAsync(user, "Agent"));
-        Assert.True(await fixture.Users.CheckPasswordAsync(user, result.TemporaryPassword));
+        Assert.False(await fixture.Users.HasPasswordAsync(user));
+        Assert.True(result.RequiresInvitation);
 
         var duplicate = () => fixture.Service.CreateAgentAsync("company", UserServiceTests.ValidDto());
         await Assert.ThrowsAsync<Remp.Common.Exceptions.ConflictException>(duplicate);
@@ -84,8 +85,10 @@ public class AgentCreationTransactionTests
     {
         await using var fixture = await Fixture.CreateAsync();
         fixture.Users.Options.Password.RequiredLength = 100;
-        var act = () => fixture.Service.CreateAgentAsync("company", UserServiceTests.ValidDto());
-        await Assert.ThrowsAsync<ArgumentException>(act);
+        var company = (await fixture.Db.PhotographyCompanies.SingleAsync());
+        var act = () => new UserRepository(fixture.Db, fixture.Users).CreateAgentAsync(new Agent(),
+            new User { UserName = "agent@example.test", Email = "agent@example.test" }, "Valid123!", company);
+        Assert.False((await act()).Succeeded);
         await fixture.AssertCountsAsync(1, 0, 0, 0);
     }
 
@@ -130,7 +133,7 @@ public class AgentCreationTransactionTests
         }
     }
 
-    private sealed class Fixture : IAsyncDisposable
+    internal sealed class Fixture : IAsyncDisposable
     {
         private readonly SqliteConnection _connection;
         private readonly ServiceProvider _provider;
@@ -147,7 +150,8 @@ public class AgentCreationTransactionTests
             Db = scope.ServiceProvider.GetRequiredService<RempDbContext>();
             Users = scope.ServiceProvider.GetRequiredService<UserManager<User>>();
             Service = new UserService(new UserRepository(Db, Users), new CreateAgentRequestValidator(),
-                new UpdatePasswordRequestValidator(), Mock.Of<IMapper>());
+                new UpdatePasswordRequestValidator(), new MapperConfiguration(c => c.AddProfile<Remp.Service.Mapper.MappingProfile>(),
+                    Microsoft.Extensions.Logging.Abstractions.NullLoggerFactory.Instance).CreateMapper());
         }
 
         public static async Task<Fixture> CreateAsync(SaveChangesInterceptor? interceptor = null)
@@ -161,7 +165,7 @@ public class AgentCreationTransactionTests
                 options.UseSqlite(connection);
                 if (interceptor != null) options.AddInterceptors(interceptor);
             });
-            services.AddIdentityCore<User>().AddRoles<Role>().AddEntityFrameworkStores<RempDbContext>();
+            services.AddIdentityCore<User>(o => o.User.RequireUniqueEmail = true).AddRoles<Role>().AddEntityFrameworkStores<RempDbContext>();
             var provider = services.BuildServiceProvider();
             var scope = provider.CreateAsyncScope();
             var fixture = new Fixture(connection, provider, scope);

@@ -75,7 +75,12 @@ namespace Remp.API.Controllers
         [Authorize(Policy = "AdminPolicy")]
         public async Task<IActionResult> GetAgentByEmail(string email)
         {
-            var agent = await _userService.GetAgentByEmailAsync(email);
+            var userId = User.FindFirstValue("uid")
+                ?? User.Claims.LastOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrWhiteSpace(userId))
+                throw new UnauthorizedAccessException("User ID claim is missing in token.");
+
+            var agent = await _userService.GetAgentByEmailAsync(userId, email);
             if (agent == null)
             {
                 return NotFound(ApiResponse<string>.Fail("Agent not found."));

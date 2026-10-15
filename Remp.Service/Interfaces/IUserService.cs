@@ -9,7 +9,7 @@ public interface IUserService
     Task<UserInfoDto> FindCurrentUserInfoAsync(string userId);
     Task AddAgentToPhotographyCompanyAsync(string currentUserId, string agentId, string companyId);
     Task<CreateAgentResponseDto> CreateAgentAsync(string currentUserId, CreateAgentRequestDto dto);
-    Task<GetAgentResponseDto> GetAgentByEmailAsync(string email);
+    Task<GetAgentResponseDto> GetAgentByEmailAsync(string currentUserId, string email);
     Task<List<GetAgentResponseDto>> GetAgentsByCompanyIdAsync(string companyId);
     Task UpdatePasswordAsync(string userId, UpdatePasswordRequestDto dto);
 }
