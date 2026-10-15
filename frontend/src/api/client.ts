@@ -1,4 +1,4 @@
-import axios from "axios";
+import axios, { type AxiosProgressEvent } from "axios";
 import { clearToken, readToken, validToken } from "../auth/session";
 
 export class ApiError extends Error {
@@ -42,6 +42,8 @@ export function normalizeError(error: unknown, login = false): ApiError {
         ? "You do not have permission to view this content."
         : status === 404
           ? "This resource could not be found."
+          : status === 413
+            ? "The upload is too large. Reduce the file size or number of files."
           : status >= 500
             ? "The service is unavailable. Please try again."
             : status === 0
@@ -72,6 +74,8 @@ export async function request<T>(
     data?: unknown;
     signal?: AbortSignal;
     public?: boolean;
+    onUploadProgress?: (event: AxiosProgressEvent) => void;
+    timeout?: number;
   } = {},
 ): Promise<T> {
   const token = options.public ? null : readToken();
@@ -85,6 +89,8 @@ export async function request<T>(
       method: options.method || "GET",
       data: options.data,
       signal: options.signal,
+      onUploadProgress: options.onUploadProgress,
+      timeout: options.timeout ?? 15000,
       headers: token ? { Authorization: `Bearer ${token}` } : undefined,
     });
     const body = response.data;

@@ -24,7 +24,7 @@ async function screenshot(page: Page, name: string) {
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   await page.screenshot({ path: test.info().outputPath(name), fullPage: true });
 }
-test("Admin creates using returned ID, then edits all fields and reads persisted detail", async ({ page }) => {
+test("Admin creates, edits, uploads media and reopens persisted detail", async ({ page }) => {
   const record = await setup(page);
   let posts = 0, puts = 0;
   page.on("request", request => { if (request.method() === "PUT") puts++; });
@@ -64,6 +64,18 @@ test("Admin creates using returned ID, then edits all fields and reads persisted
   expect(record.latitude).toBe(-33.72);
   expect(record.price).toBe(123.45);
   expect(puts).toBe(1);
+  const png = Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+aG7sAAAAASUVORK5CYII=", "base64");
+  await page.route("https://media.test/created.png", route => route.fulfill({ contentType: "image/png", body: png }));
+  let uploads = 0;
+  await page.route("**/api/MediaAsset/media/upload", route => {
+    uploads++;
+    Object.assign(record, { mediaAssets: [{ id: 9, mediaType: 1, mediaUrl: "https://media.test/created.png" }] });
+    return route.fulfill({ json: { success: true, data: [] } });
+  });
+  await page.locator('#upload-files').setInputFiles({ name: "created.png", mimeType: "image/png", buffer: png });
+  await page.getByRole("button", { name: "Upload selected files" }).click();
+  await expect(page.getByAltText("Image 9")).toBeVisible();
+  await page.reload(); await expect(page.getByAltText("Image 9")).toBeVisible(); expect(uploads).toBe(1);
 });
 test("edit prefill preserves every editable field including decimals, zero and enum values", async ({ page }) => {
   await setup(page);
@@ -99,7 +111,7 @@ test("Agent has no create/edit entries and direct routes are blocked without det
 test("Delivered listing has no edit entry and direct edit is read-only", async ({ page }) => {
   await setup(page, "Admin", 3);
   await page.goto("/listings/42");
-  await expect(page.getByText("Delivered listing is read-only.")).toBeVisible();
+  await expect(page.getByText("Delivered listing details cannot be edited.")).toBeVisible();
   await expect(page.getByRole("link", { name: "Edit listing" })).toHaveCount(0);
   await page.goto("/listings/42/edit");
   await expect(page.getByRole("status")).toContainText("cannot be edited");

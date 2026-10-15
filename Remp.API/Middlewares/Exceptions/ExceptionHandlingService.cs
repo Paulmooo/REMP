@@ -32,6 +32,7 @@ public class ExceptionHandlingService
 
     private static int GetStatusCode(Exception exception)
     {
+        if (exception is BadHttpRequestException badRequest) return badRequest.StatusCode;
         if (exception is ForbiddenException)
         {
             return StatusCodes.Status403Forbidden;

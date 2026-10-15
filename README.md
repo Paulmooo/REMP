@@ -229,3 +229,7 @@ npm run dev
 Open http://127.0.0.1:5173. Run the configured API separately using `dotnet run --project Remp.API/Remp.API.csproj --launch-profile http` from the repository root. Vite proxies `/api` to the existing `http://localhost:5265` HTTP profile; no backend configuration was changed. A running SQL Server-backed API and existing password-enabled Admin/Agent credentials are required for real login. Company-created passwordless accounts remain pending invitation.
 
 Frontend checks: `npm run typecheck`, `npm test`, `npm run build`, `npm run test:browser` (installed Google Chrome; stop the development server first). Browser tests serve production assets and use isolated API fixtures only in tests. Production hosting/API routing and deployment have not been implemented.
+
+## Admin media uploads
+
+Listing detail now includes Admin-only Picture, Video and FloorPlan uploads with selection/drop, previews, progress, validation, retry and fresh gallery reads. Agent access remains read-only. VR upload format is pending agreement. Configure the API's existing `AzureBlobStorage:ConnectionString` and `ContainerName` for a pre-existing container; this feature does not provision storage or change container permissions. The returned URLs still need an existing readable access policy. See [frontend/README.md](frontend/README.md) for accepted formats, limits and the current real Blob integration gap. Browser acceptance runs on its own port 5174.
