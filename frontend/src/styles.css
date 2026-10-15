@@ -850,3 +850,17 @@ p + p {
   .form-actions { gap: 10px; }
   .form-actions .button { padding: 11px 19px; }
 }
+
+.upload-section fieldset { border: 0; padding: 0; min-width: 0; }
+.upload-section label { display: block; font-weight: 600; margin-bottom: 10px; }
+.upload-section select { padding: 12px; border: 1px solid #ccd2d8; border-radius: 8px; background: #f5f5f5; max-width: 100%; }
+.upload-drop { padding: 24px; border: 2px dashed #adb8c3; border-radius: 12px; background: #f5f5f5; }
+.upload-drop input { max-width: 100%; }
+.pending-media { list-style: none; padding: 0; }
+.pending-media li { display: flex; align-items: center; gap: 16px; padding: 16px 0; border-bottom: 1px solid #e5e8eb; }
+.pending-media li > div { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.pending-media img, .pending-media video { width: 120px; height: 90px; object-fit: contain; background: #f5f5f5; border-radius: 8px; }
+.upload-section progress { width: 100%; margin-top: 20px; }
+@media (max-width: 600px) { .pending-media li { flex-wrap: wrap; } .pending-media img, .pending-media video { width: 90px; height: 75px; } .upload-drop { padding: 16px; } }
+.upload-section > .muted { margin-bottom: 18px; }
+.upload-section #upload-help { margin: 12px 0; color: #586773; line-height: 1.6; }

@@ -1,4 +1,6 @@
 using AutoMapper;
+using Remp.Common.Exceptions;
+using Remp.Service.Validators;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Remp.Models.Entities;
@@ -33,6 +35,10 @@ public class MediaAssetService : IMediaAssetService
 
     public async Task<List<MediaAssetDto>> UploadMediaAssetsAsync(List<IFormFile> files, MediaType type, int listingCaseId, string userId)
     {
+        if (string.IsNullOrWhiteSpace(userId)) throw new UnauthorizedAccessException();
+        if (listingCaseId <= 0) throw new ArgumentException("Invalid listing ID.");
+        if (!await _listingCaseRepository.IsActiveCompanyAdminAsync(userId))
+            throw new ForbiddenException("An active company Admin is required.");
         if (!Enum.IsDefined(typeof(MediaType), type))
         {
             throw new ArgumentException("Invalid media type.");
@@ -49,15 +55,17 @@ public class MediaAssetService : IMediaAssetService
         }
 
         var listingCase = await _listingCaseRepository.GetListingCaseByIdAsync(listingCaseId);
-        if (listingCase == null)
+        if (listingCase == null || listingCase.IsDeleted)
         {
             throw new KeyNotFoundException($"Listing case with ID {listingCaseId} not found.");
         }
 
         if (listingCase.UserId != userId)
         {
-            throw new ArgumentException($"User with ID {userId} does not have permission to upload media assets to listing case with ID {listingCaseId}.");
+            throw new ForbiddenException($"User with ID {userId} does not have permission to upload media assets to listing case with ID {listingCaseId}.");
         }
+
+        await MediaUploadRules.ValidateAsync(files, type);
 
         var mediaAssets = new List<MediaAsset>();
         var attemptedBlobNames = new List<string>();

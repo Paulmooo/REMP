@@ -1,5 +1,7 @@
 import { useAuth } from "../auth/AuthContext";
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
+import { request } from "../api/client";
+import { MediaUpload } from "../components/MediaUpload";
 import { Link, useLocation, useParams } from "react-router-dom";
 import type { Listing, Media } from "../api/types";
 import { useResource } from "../api/useResource";
@@ -56,9 +58,11 @@ export function ListingDetail() {
 function Detail({ id }: { id: string }) {
   const { user } = useAuth();
   const location = useLocation();
-  const { data, error, retry } = useResource<Listing>(
+  const [refreshed, setRefreshed] = useState<Listing>();
+  const { data: original, error, retry } = useResource<Listing>(
     `/ListingCase/listings/${id}`,
   );
+  const data = refreshed ?? original;
   if (error)
     return (
       <>
@@ -88,7 +92,7 @@ function Detail({ id }: { id: string }) {
         ← Back to listings
       </Link>
       {location.state?.listingSaved && <Feedback title="Listing saved">The persisted listing details are shown below.</Feedback>}
-      {user?.roles.includes("Admin") && <div className="detail-actions">{data.listingStatus === 3 ? <p className="muted">Delivered listing is read-only.</p> : <Link className="button secondary" to={`/listings/${id}/edit`}>Edit listing</Link>}</div>}
+      {user?.roles.includes("Admin") && <div className="detail-actions">{data.listingStatus === 3 ? <p className="muted">Delivered listing details cannot be edited.</p> : <Link className="button secondary" to={`/listings/${id}/edit`}>Edit listing</Link>}</div>}
       <div className="property-hero">
         <div className="hero-image">
           {hero ? (
@@ -164,6 +168,10 @@ function Detail({ id }: { id: string }) {
           </div>
         </dl>
       </Section>
+      {user?.roles.includes("Admin") && <MediaUpload listingId={id} refresh={async () => {
+        const updated = await request<Listing>(`/ListingCase/listings/${id}`);
+        setRefreshed(updated);
+      }} />}
       <Section title="Final display images" count={selected.length}>
         <p className="muted section-note">
           The current shared selection. The cover is labelled below.

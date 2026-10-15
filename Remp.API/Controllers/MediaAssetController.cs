@@ -22,6 +22,9 @@ namespace Remp.API.Controllers
         }
 
         [HttpPost("media/upload")]
+        [RequestSizeLimit(101 * 1024 * 1024)]
+        [RequestFormLimits(MultipartBodyLengthLimit = 101 * 1024 * 1024)]
+        [ProducesResponseType(StatusCodes.Status413PayloadTooLarge)]
         [Authorize(Policy = "AdminPolicy")]
         public async Task<IActionResult> UploadMediaAssets(
             [FromForm] List<IFormFile> files,
