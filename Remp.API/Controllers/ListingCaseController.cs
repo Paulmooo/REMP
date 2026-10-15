@@ -19,6 +19,36 @@ namespace Remp.API.Controllers
             _listingCaseService = listingCaseService;
         }
 
+        /// <summary>Assign an active Agent belonging to the listing owner's company. Idempotent.</summary>
+        [HttpPut("listings/{id:int}/agents/{agentId}")]
+        [Authorize(Policy = "AdminPolicy")]
+        [ProducesResponseType(typeof(ApiResponse<ListingAgentAssignmentDto>), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> AssignAgent(int id, string agentId)
+        {
+            var userId = User.FindFirstValue("uid") ?? User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var result = await _listingCaseService.AssignAgentAsync(id, agentId, userId);
+            return Ok(ApiResponse<ListingAgentAssignmentDto>.Ok(result, "Agent assigned successfully."));
+        }
+
+        /// <summary>Remove only this Agent–Listing assignment. An absent assignment succeeds.</summary>
+        [HttpDelete("listings/{id:int}/agents/{agentId}")]
+        [Authorize(Policy = "AdminPolicy")]
+        [ProducesResponseType(typeof(ApiResponse<ListingAgentAssignmentDto>), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> UnassignAgent(int id, string agentId)
+        {
+            var userId = User.FindFirstValue("uid") ?? User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var result = await _listingCaseService.UnassignAgentAsync(id, agentId, userId);
+            return Ok(ApiResponse<ListingAgentAssignmentDto>.Ok(result, "Agent unassigned successfully."));
+        }
+
         [HttpPost("listings")]
         [Authorize(Policy = "AdminPolicy")]
         public async Task<IActionResult> CreateListingCase([FromBody] CreateListingCaseRequestDto dto)
