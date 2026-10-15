@@ -32,6 +32,79 @@ public class ListingCaseService : IListingCaseService
     public Task<ListingAgentAssignmentDto> AssignAgentAsync(int id, string agentId, string userId) =>
         SetAssignmentAsync(id, agentId, userId, true);
 
+    public async Task<FinalSelectionDto> GetFinalSelectionAsync(int id, string userId)
+    {
+        if (string.IsNullOrWhiteSpace(userId)) throw new UnauthorizedAccessException("User ID claim is missing in token.");
+        if (id <= 0) throw new ArgumentException("A positive Listing ID is required.");
+        var admin = await _listingCaseRepository.IsActiveCompanyAdminAsync(userId);
+        var agent = await _listingCaseRepository.GetActiveAgentAsync(userId);
+        if (!admin && agent == null) throw new ForbiddenException("An active company administrator or Agent is required.");
+        var listing = await _listingCaseRepository.GetListingCaseDetailsByIdAsync(id)
+            ?? throw new KeyNotFoundException("Listing case not found.");
+        var assigned = agent != null && listing.Agents.Any(a => a.Id == userId) &&
+            agent.PhotographyCompanies.Any(c => c.Id == listing.UserId);
+        if (!(admin && listing.UserId == userId) && !assigned)
+            throw new ForbiddenException("The listing is not accessible to this user.");
+        return MapFinalSelection(listing);
+    }
+
+    public Task<FinalSelectionDto> SaveMediaSelectionAsync(int id, SaveMediaSelectionRequestDto dto, string userId)
+    {
+        if (dto?.MediaIds == null) throw new ArgumentException("Media IDs are required; use an empty array to clear selection.");
+        if (dto.MediaIds.Count > 10 || dto.MediaIds.Any(i => i <= 0) || dto.MediaIds.Distinct().Count() != dto.MediaIds.Count)
+            throw new ArgumentException("Select at most ten distinct positive media IDs.");
+        if (dto.HeroMediaId.HasValue && !dto.MediaIds.Contains(dto.HeroMediaId.Value))
+            throw new ArgumentException("The cover must be included in the display pictures.");
+        return UpdateSelectionAsync(id, userId, dto.MediaIds.ToArray(), dto.HeroMediaId);
+    }
+
+    public Task<FinalSelectionDto> SetHeroAsync(int id, SetHeroRequestDto dto, string userId)
+    {
+        if (dto?.MediaId == null || dto.MediaId <= 0) throw new ArgumentException("A positive cover media ID is required.");
+        return UpdateSelectionAsync(id, userId, null, dto.MediaId);
+    }
+
+    private async Task<FinalSelectionDto> UpdateSelectionAsync(int id, string userId, int[]? mediaIds, int? heroId)
+    {
+        if (string.IsNullOrWhiteSpace(userId)) throw new UnauthorizedAccessException("User ID claim is missing in token.");
+        if (id <= 0) throw new ArgumentException("A positive Listing ID is required.");
+        if (await _listingCaseRepository.GetActiveAgentAsync(userId) == null)
+            throw new ForbiddenException("Only an active assigned Agent can modify media selection.");
+        var result = await _listingCaseRepository.UpdateMediaSelectionAsync(id, async listing =>
+        {
+            var agent = await _listingCaseRepository.GetActiveAgentAsync(userId);
+            if (agent == null || !listing.Agents.Any(a => a.Id == userId) ||
+                !agent.PhotographyCompanies.Any(c => c.Id == listing.UserId))
+                throw new ForbiddenException("Only an active assigned Agent from the listing company can modify selection.");
+            if (listing.ListingStatus == ListcaseStatus.Delivered)
+                throw new ArgumentException("Delivered listing media selection cannot be modified.");
+            var selected = mediaIds ?? listing.MediaAssets.Where(m => m.IsSelected).Select(m => m.Id).ToArray();
+            var valid = listing.MediaAssets.Where(m => !m.IsDeleted && m.MediaType == MediaType.Picture).Select(m => m.Id).ToHashSet();
+            if (selected.Length > 10 || selected.Any(i => !valid.Contains(i)))
+                throw new ArgumentException("All display media must be undeleted pictures belonging to this Listing (maximum ten).");
+            if (heroId.HasValue && (!valid.Contains(heroId.Value) || !selected.Contains(heroId.Value)))
+                throw new ArgumentException("The cover must be one of the selected display pictures.");
+            foreach (var media in listing.MediaAssets)
+            {
+                media.IsSelected = selected.Contains(media.Id);
+                media.IsHero = media.Id == heroId;
+            }
+        });
+        return MapFinalSelection(result);
+    }
+
+    private FinalSelectionDto MapFinalSelection(ListingCase listing)
+    {
+        var pictures = listing.MediaAssets.Where(m => !m.IsDeleted && m.MediaType == MediaType.Picture)
+            .OrderBy(m => m.Id).ToList();
+        return new FinalSelectionDto
+        {
+            ListingCaseId = listing.Id,
+            Pictures = _mapper.Map<List<MediaAssetDto>>(pictures.Where(m => m.IsSelected).ToList()),
+            Hero = _mapper.Map<MediaAssetDto>(pictures.FirstOrDefault(m => m.IsHero))
+        };
+    }
+
     public Task<ListingAgentAssignmentDto> UnassignAgentAsync(int id, string agentId, string userId) =>
         SetAssignmentAsync(id, agentId, userId, false);
 

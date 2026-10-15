@@ -5,6 +5,7 @@ namespace Remp.Repository.Interfaces;
 
 public interface IListingCaseRepository
 {
+    Task<ListingCase> UpdateMediaSelectionAsync(int id, Func<ListingCase, Task> update);
     Task<bool> IsActiveCompanyAdminAsync(string userId);
     Task<Agent?> GetActiveAgentAsync(string agentId);
     Task SetAgentAssignmentAsync(int listingCaseId, string agentId, bool assigned);

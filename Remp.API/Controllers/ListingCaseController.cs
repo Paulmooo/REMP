@@ -49,6 +49,51 @@ namespace Remp.API.Controllers
             return Ok(ApiResponse<ListingAgentAssignmentDto>.Ok(result, "Agent unassigned successfully."));
         }
 
+        /// <summary>Read the shared final display pictures and cover for an accessible Listing.</summary>
+        [HttpGet("listings/{id:int}/final-selection")]
+        [Authorize(Roles = "Admin,Agent")]
+        [ProducesResponseType(typeof(ApiResponse<FinalSelectionDto>), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> GetFinalSelection(int id)
+        {
+            var userId = User.FindFirstValue("uid") ?? User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var result = await _listingCaseService.GetFinalSelectionAsync(id, userId);
+            return Ok(ApiResponse<FinalSelectionDto>.Ok(result, "Final selection retrieved successfully."));
+        }
+
+        /// <summary>Replace all display pictures (maximum ten) and the optional cover. Delivered Listings are read-only.</summary>
+        [HttpPut("listings/{id:int}/selected-media")]
+        [Authorize(Policy = "AgentPolicy")]
+        [ProducesResponseType(typeof(ApiResponse<FinalSelectionDto>), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> SaveMediaSelection(int id, [FromBody] SaveMediaSelectionRequestDto dto)
+        {
+            var userId = User.FindFirstValue("uid") ?? User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var result = await _listingCaseService.SaveMediaSelectionAsync(id, dto, userId);
+            return Ok(ApiResponse<FinalSelectionDto>.Ok(result, "Media selection updated successfully."));
+        }
+
+        /// <summary>Set the unique cover to an already selected picture. Delivered Listings are read-only.</summary>
+        [HttpPut("listings/{id:int}/cover-image")]
+        [Authorize(Policy = "AgentPolicy")]
+        [ProducesResponseType(typeof(ApiResponse<FinalSelectionDto>), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> SetHero(int id, [FromBody] SetHeroRequestDto dto)
+        {
+            var userId = User.FindFirstValue("uid") ?? User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var result = await _listingCaseService.SetHeroAsync(id, dto, userId);
+            return Ok(ApiResponse<FinalSelectionDto>.Ok(result, "Media selection updated successfully."));
+        }
+
         [HttpPost("listings")]
         [Authorize(Policy = "AdminPolicy")]
         public async Task<IActionResult> CreateListingCase([FromBody] CreateListingCaseRequestDto dto)
