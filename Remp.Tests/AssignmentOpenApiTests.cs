@@ -53,6 +53,22 @@ public class AssignmentOpenApiTests
             Assert.Contains(save.GetProperty("required").EnumerateArray(), p => p.GetString() == "mediaIds");
             Assert.True(save.GetProperty("properties").TryGetProperty("heroMediaId", out _));
             Assert.Contains(schemas.GetProperty("SetHeroRequestDto").GetProperty("required").EnumerateArray(), p => p.GetString() == "mediaId");
+            var contacts = document.RootElement.GetProperty("paths").GetProperty("/api/ListingCase/listings/{id}/contacts");
+            foreach (var verb in new[] { "get", "post" })
+                foreach (var status in new[] { "200", "400", "401", "403", "404" })
+                    Assert.True(contacts.GetProperty(verb).GetProperty("responses").TryGetProperty(status, out _));
+            Assert.True(contacts.GetProperty("post").GetProperty("requestBody").GetProperty("required").GetBoolean());
+            var contactRequest = schemas.GetProperty("CreateCaseContactRequestDto");
+            foreach (var field in new[] { "firstName", "lastName" })
+                Assert.Contains(contactRequest.GetProperty("required").EnumerateArray(), p => p.GetString() == field);
+            foreach (var field in new[] { "firstName", "lastName", "companyName", "profileUrl", "email", "phoneNumber" })
+            {
+                Assert.True(contactRequest.GetProperty("properties").TryGetProperty(field, out _));
+                Assert.True(schemas.GetProperty("CaseContactDto").GetProperty("properties").TryGetProperty(field, out _));
+            }
+            Assert.False(contactRequest.GetProperty("properties").TryGetProperty("contactId", out _));
+            Assert.False(contactRequest.GetProperty("properties").TryGetProperty("listingCaseId", out _));
+            Assert.True(schemas.GetProperty("CaseContactDto").GetProperty("properties").TryGetProperty("contactId", out _));
             var assignment = schemas.GetProperty("ListingAgentAssignmentDto").GetProperty("properties");
             foreach (var field in new[] { "listingCaseId", "agentId", "assigned" }) Assert.True(assignment.TryGetProperty(field, out _));
         }

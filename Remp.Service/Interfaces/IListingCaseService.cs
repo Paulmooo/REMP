@@ -5,6 +5,8 @@ namespace Remp.Service.Interfaces;
 
 public interface IListingCaseService
 {
+    Task<List<CaseContactDto>> GetContactsAsync(int id, string userId);
+    Task<CaseContactDto> AddContactAsync(int id, CreateCaseContactRequestDto dto, string userId);
     Task<FinalSelectionDto> GetFinalSelectionAsync(int id, string userId);
     Task<FinalSelectionDto> SaveMediaSelectionAsync(int id, SaveMediaSelectionRequestDto dto, string userId);
     Task<FinalSelectionDto> SetHeroAsync(int id, SetHeroRequestDto dto, string userId);
