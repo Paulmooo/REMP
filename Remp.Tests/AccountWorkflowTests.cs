@@ -20,7 +20,7 @@ namespace Remp.Tests;
 public class AccountWorkflowTests
 {
     private const string Key = "test-signing-key-at-least-thirty-two-bytes-long";
-    internal static AuthService Auth(AgentCreationTransactionTests.Fixture f) => new(
+    private static AuthService Auth(AgentCreationTransactionTests.Fixture f) => new(
         new ConfigurationBuilder().AddInMemoryCollection(new Dictionary<string, string?>
         {
             ["Jwt:Key"] = Key, ["Jwt:Issuer"] = "tests", ["Jwt:Audience"] = "tests-client"
